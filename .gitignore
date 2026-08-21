@@ -1,53 +1,57 @@
 #-------------------------
-# Operating Specific Junk Files
+# Versioned project docs (DO track)
+#-------------------------
+# /docs  — technical documentation (charter, PRD, architecture, ops)
+# /adr   — Architecture Decision Records
+# These directories must remain under version control.
+# Do not add ignore rules that would exclude them.
+
+#-------------------------
+# Operating System Junk
 #-------------------------
 
-# OS X
+# macOS
 .DS_Store
 .AppleDouble
 .LSOverride
-
-# OS X Thumbnails
 ._*
 
-# Windows image file caches
+# Windows
 Thumbs.db
 ehthumbs.db
 Desktop.ini
-
-# Recycle Bin used on file shares
 $RECYCLE.BIN/
-
-# Windows Installer files
 *.cab
 *.msi
 *.msm
 *.msp
-
-# Windows shortcuts
 *.lnk
 
 # Linux
 *~
-
-# KDE directory preferences
 .directory
-
-# Linux trash folder which might appear on any partition or disk
 .Trash-*
 
 #-------------------------
-# Environment Files
+# Environment & Secrets
 #-------------------------
-# These should never be under version control,
-# as it poses a security risk.
+# Never commit secrets or local env overrides.
 .env
+.env.*
+!.env.example
+.db_password
+*.pem
+*.key
+!public/**/*.key
+
+# Local VM tooling (if used)
 .vagrant
 Vagrantfile
 
 #-------------------------
-# Temporary Files
+# CodeIgniter writable/*
 #-------------------------
+# Keep directory placeholders; ignore runtime contents.
 /writable/cache/*
 !/writable/cache/index.html
 
@@ -66,7 +70,37 @@ Vagrantfile
 php_errors.log
 
 #-------------------------
-# User Guide Temp Files
+# Dependencies
+#-------------------------
+/vendor/
+/node_modules/
+
+#-------------------------
+# Frontend build artifacts
+#-------------------------
+# Tailwind/Vite compiled CSS/JS output (source stays tracked).
+/public/assets/css/app.css
+/public/build/
+/public/hot
+
+#-------------------------
+# Design reference only (never deploy)
+#-------------------------
+# TailAdmin Free clone — local markup reference per .cursorrules §2.1
+/reference/
+
+#-------------------------
+# Tests & coverage
+#-------------------------
+/tests/coverage*
+/phpunit
+/phpunit.xml
+/results/
+/.phpunit.result.cache
+/.phpunit.cache/
+
+#-------------------------
+# User Guide build (framework; usually absent in appstarter)
 #-------------------------
 /user_guide_src/build/*
 /user_guide_src/cilexer/build/*
@@ -74,29 +108,14 @@ php_errors.log
 /user_guide_src/cilexer/pycilexer.egg-info/*
 
 #-------------------------
-# Test Files
+# IDE / Editor / Agent
 #-------------------------
-/tests/coverage*
-
-# Don't save phpunit under version control.
-/phpunit
-
-#-------------------------
-# Composer
-#-------------------------
-vendor/
-
-#-------------------------
-# IDE / Development Files
-#-------------------------
-
-# Modules Testing
 _modules/*
-
-# phpenv local config
 .php-version
+.php-cs-fixer.cache
+.phpstan.cache
 
-# Jetbrains editors (PHPStorm, etc)
+# JetBrains
 .idea/
 *.iml
 
@@ -117,10 +136,12 @@ _modules/*
 *.sublime-workspace
 *.sublime-project
 .phpintel
-/api/
 
-# Visual Studio Code
+# VS Code / Cursor local settings
 .vscode/
+.cursor/
+!.cursor/skills/
+!.cursor/rules/
 
-/results/
-/phpunit.xml
+# Misc generated API dumps
+/api/

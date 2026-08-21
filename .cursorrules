@@ -1,0 +1,414 @@
+# CURSORRULES — CodeIgniter 4.7+ & PHP 8.5+
+**Scope:** Global rules, applies to every CodeIgniter 4 project
+**Version:** 4.7 (adds TailAdmin as the default local admin-UI reference in §2.1, and mandatory HTMX response-pattern / Alpine.js discipline rules in §4.5–§4.6)
+**Last updated:** 5 August 2026
+
+---
+
+## 0. HOW THIS FILE WORKS
+
+This `.cursorrules` file defines **global engineering standards** shared by all CodeIgniter 4 projects. It does not contain anything specific to a single project (table names, business rules, third-party packages, module list, naming of domain entities, etc.).
+
+Every project also has a `CONTEXT.md` at its root containing **project-specific** instructions.
+
+**Precedence rule:**
+- This file governs *how* code is written — language rules, architecture, layering, security, prohibitions.
+- `CONTEXT.md` governs *what* is being built — domain rules, schema, project structure decisions, package choices.
+- Always read `CONTEXT.md` (if present) before generating code. If `CONTEXT.md` explicitly overrides something here for a valid project reason (e.g. a legacy module that can't follow the layered architecture yet, or a project still pinned to PHP 8.4), follow `CONTEXT.md` for that project and note the exception — don't silently ignore either file.
+
+---
+
+## 1. ROLE
+
+You are an expert PHP / CodeIgniter developer assistant. Your job is to generate clean, maintainable, production-ready code. Follow these rules strictly. Never deviate without an explicit instruction from the developer or from `CONTEXT.md`.
+
+---
+
+## 2. PROJECT STACK
+
+**Backend**
+- Framework: CodeIgniter 4.7+ (officially supports PHP 8.5 as of 4.7.0)
+- PHP: **8.5+ mandatory minimum for all new projects.** PHP 8.4 remains in active support and is not urgent to migrate away from — an existing project still on 8.4 does not need to upgrade immediately, but should treat 8.5 as the target for its next maintenance cycle and record the exception in that project's `CONTEXT.md`. Before assuming any 8.5-only feature below in generated code, confirm the target hosting environment actually offers PHP 8.5.
+- Database: MariaDB / MySQL
+- Auth: CodeIgniter Shield
+
+**Frontend**
+- CSS: Tailwind CSS 4 (Play CDN for dev, Vite/PostCSS for prod)
+- Interactivity: Alpine.js 3 — scope/discipline in §4.6
+- AJAX / partial rendering: HTMX 2 — response pattern in §4.5
+- Markup: semantic HTML5
+- Admin UI reference: TailAdmin (Free) — see §2.1
+
+**Environment**
+- OS: WSL Ubuntu 24.04 LTS / Windows 11 Pro
+- IDE: Cursor AI
+
+**Avoid**
+- React, Vue, Angular SPA setups
+- Bootstrap, jQuery, DataTables
+- Any frontend framework not listed above, unless `CONTEXT.md` says otherwise for that project
+
+### 2.1 Admin UI Reference — TailAdmin (Mandatory Where Applicable)
+
+Every admin-facing View (sidebar/topbar shell, cards, tables, forms, modals, empty states) should start from **TailAdmin Free** (HTML + Tailwind + Alpine.js edition, MIT license — `github.com/TailAdmin/tailadmin-free-tailwind-dashboard-template`) as the default layout/component reference, instead of inventing markup from scratch or from memory.
+
+- **Local reference, not a live fetch.** Keep a working clone at `reference/tailadmin` in the project root (add `reference/` to `.gitignore` — it is a design reference, never a production dependency, and must never be deployed or `require`d at runtime). Before generating any new admin View, check this folder first for a matching pattern.
+- If `reference/tailadmin` is missing or looks stale, **ask the developer to clone/pull it** rather than reconstructing TailAdmin markup from training-data memory — treat "latest" as "whatever is currently checked out locally," since the upstream template evolves after this file's training cutoff.
+- **Reuse markup, classes, and Alpine directives only** — never TailAdmin's own `npm`/Vite build config, its dummy data/routing, or any client-side logic that duplicates what this project's Controller → Service → View flow (and HTMX partials, §4.5) must own.
+- Adapt every class to this project's actual Tailwind target (Play CDN in dev, compiled build in prod, per Frontend stack above). Do not assume TailAdmin's own `tailwind.config.js` palette, custom colors, or plugins (e.g. `@tailwindcss/forms`) are available unless they have been explicitly replicated in this project's own Tailwind config.
+- If a needed page pattern isn't covered by TailAdmin's free tier, fall back to plain semantic HTML5 + Tailwind + Alpine per this section — don't force-fit an unrelated component just to avoid writing new markup.
+
+---
+
+## 3. PHP 8.5 LANGUAGE RULES
+
+### 3.1 Always Use
+
+- `declare(strict_types=1);` at the top of every PHP file — no exceptions
+- Typed properties: `private string $name;`
+- Return type declarations on every method, including `void`
+- `readonly` properties / `readonly class` for immutable objects (DTOs)
+- Constructor property promotion where it improves readability
+- Nullsafe operator: `$user?->getProfile()?->getAvatar()`
+- `match` expressions instead of `switch`
+- First-class callable syntax: `array_map($this->format(...), $items)`
+- Native array helpers instead of manual loops: `array_find()`, `array_find_key()`, `array_any()`, `array_all()`, `array_first()`, `array_last()`
+- Backed enums (`string` or `int`) for values stored in the database
+- `#[\Override]` attribute on overridden methods
+- **Clone With** (`clone($object, ['property' => $newValue])`) to produce a modified copy of a `readonly` DTO or Entity, instead of writing a manual "wither" method or re-invoking the full constructor. This is the preferred way to derive a changed copy of any object under our mandatory `readonly` DTO pattern (§5.2, §6):
+  ```php
+  $updated = clone($dto, [
+      'email' => $normalizedEmail,
+  ]);
+  ```
+- **`Uri\Rfc3986\Uri`** (or **`Uri\WhatWg\Url`** for browser-style parsing of user-supplied/redirect URLs) — the native URI extension — instead of `parse_url()` or manual string concatenation, for every place the app parses, validates, or rebuilds a URL. This applies in particular to the short-lived signed resource URLs mandated in §6, and to any redirect/callback URL that originates from user input:
+  ```php
+  use Uri\Rfc3986\Uri;
+
+  $uri = new Uri($rawUrl);          // throws on malformed input — validation is built in
+  $signedUri = $uri
+      ->withQuery('token=' . $signedToken)
+      ->withFragment(null);
+
+  return $signedUri->toString();
+  ```
+- **`#[\NoDiscard]`** on Service methods whose return value must not be silently ignored (e.g. a `bool` success flag, a `Result`/`Entity` the caller is expected to act on). This catches a Controller that calls the Service but never checks the outcome:
+  ```php
+  #[\NoDiscard]
+  public function markInvoicePaid(int $invoiceId): bool
+  {
+      // ...
+  }
+  ```
+- Named arguments — only when a boolean flag or 3+ parameters would otherwise be ambiguous:
+  ```php
+  // Good — clarifies what `true` means
+  str_contains(haystack: $text, needle: 'promo');
+  ```
+
+### 3.2 Use With Care (Optional Advanced Features)
+
+- **Property hooks** — default to plain getter methods instead. Only use hooks when you can manually verify the generated behavior; don't rely on them blindly in generated code.
+- **Pipe operator `|>`** — fine for a short, obviously-linear chain of pure transformations; do not use it to replace a Service method that already reads clearly as sequential steps, and never chain more than 3–4 stages.
+
+### 3.3 Removed / Deprecated — Never Use
+
+These either no longer exist or trigger deprecation errors on PHP 8.x:
+
+| Don't use | Use instead |
+| --- | --- |
+| `${var}` string interpolation | `{$var}` or concatenation |
+| `utf8_encode()` / `utf8_decode()` | `mb_convert_encoding()` |
+| `money_format()` | `NumberFormatter` |
+| `each()` | `foreach` |
+| `create_function()` | closures / arrow functions |
+| `ereg*()` functions | `preg_*()` |
+| `FILTER_SANITIZE_STRING` | `htmlspecialchars()` / `strip_tags()` |
+| `FILTER_DEFAULT` constant (deprecated in 8.5) | an explicit filter, e.g. `FILTER_UNSAFE_RAW` if that behavior is truly intended |
+| `split()` | `explode()` / `preg_split()` |
+| `parse_url()` for anything security- or logic-relevant | `Uri\Rfc3986\Uri` / `Uri\WhatWg\Url` (see §3.1) |
+
+### 3.4 Discouraged — Avoid For Project Consistency
+
+These are still valid PHP but should be avoided for consistency, readability, or because the surrounding tooling isn't ready for them:
+
+- Dynamic properties without explicit `#[AllowDynamicProperties]`
+- Calling non-static methods statically
+- Implicit nullable parameters (always write `?Type $x = null` explicitly, never rely on the old implicit-nullable shortcut)
+- Asymmetric visibility (`public private(set)`), including its PHP 8.5 extension to static properties — wait for broader team/tooling familiarity before adopting
+- `Fiber` — not relevant for CI4's synchronous request/response model
+- `join()` as an alias of `implode()` — use `implode()` explicitly for clarity
+
+### 3.5 Global Constants Inside Namespaces (Sodium / ext-* — Mandatory)
+
+Unqualified PHP constants are resolved **relative to the current namespace**. Inside `namespace App\Libraries;`, a bare `SODIUM_CRYPTO_SECRETBOX_KEYBYTES` becomes `App\Libraries\SODIUM_CRYPTO_SECRETBOX_KEYBYTES` and fatals with `Undefined constant` — even when `ext-sodium` is installed.
+
+**Never** use bare `SODIUM_*` (or other extension-defined global constants) inside a namespaced class. Prefer one of:
+
+1. **Leading backslash** (global root): `\SODIUM_CRYPTO_SECRETBOX_KEYBYTES`
+2. **Private size constants** on the class (preferred for libraries — clearer, no dependency on constant names at call sites):
+
+```php
+private const KEY_BYTES   = 32; // sodium_crypto_secretbox_keybytes()
+private const NONCE_BYTES = 24;
+private const MAC_BYTES   = 16;
+
+if (strlen($decoded) === self::KEY_BYTES) { /* ... */ }
+```
+
+Also assert the extension is present early (e.g. `extension_loaded('sodium')`) and document `ext-sodium` as a hosting requirement for any project that encrypts PII with Sodium.
+
+### 3.6 Uri Extension vs `parse_url()` (Mandatory Where URLs Touch Security)
+
+PHP 8.5's built-in Uri extension provides two standards-compliant, object-oriented parsers as a core part of PHP — no package needed:
+
+- `Uri\Rfc3986\Uri` — strict RFC 3986 parsing/validation; throws on malformed input rather than silently returning a partial or wrong result.
+- `Uri\WhatWg\Url` — browser-compatible (WHATWG) parsing, useful when matching how a browser would interpret a URL a user pasted in.
+
+`parse_url()` is well known for inconsistent, non-standard behavior on edge-case input (missing scheme, unusual credential syntax, etc.), which has historically enabled URL-parsing based bypasses. Given this file's requirements to generate signed/tokenized resource URLs and to never trust client-supplied redirect targets (§6, §7), **any code path where URL parsing feeds into an access-control or redirect decision must use the Uri extension, not `parse_url()`.** Pure cosmetic/display use of a URL (e.g. printing a link in a view) is not required to switch, but is still encouraged to for consistency.
+
+---
+
+## 4. CODEIGNITER 4.7+ FRAMEWORK RULES
+
+### 4.1 Always Use
+
+- Standard PHP `__construct()` for dependency injection in Controllers, Models, and Services. Only override `initController()` when you genuinely need the framework-instantiated `$request` / `$response` / `$logger` properties during initialization.
+- `model(ClassName::class)` to load models
+- `service('serviceName')` to load services
+- `$this->request->getPost()` / `$this->request->getGet()` — never raw superglobals
+- CI4's Validation class (and the Controller's `validate()` / `$this->validator`) for all input validation
+- CI4 Migrations for every schema change — never manual `ALTER TABLE`
+- CI4 Shield for authentication and authorization
+- `esc()` on all dynamic output in views
+- The `session()` helper / Session service — never `$_SESSION` directly
+- `return redirect()->to(...)` for all redirects
+- `db_connect()` explicitly when a transaction spans multiple models
+- clean URL without 'index.php'
+- CI4's built-in **Throttler** (`service('throttler')`) or the `throttle` filter on every login, registration, password-reset, and OTP-verification route, to mitigate brute-force and credential-stuffing attempts. This is mandatory for any route that checks a password, OTP, or lookup hash.
+
+### 4.2 Never Use (CI3 Style / Deprecated in CI4)
+
+- `$this->load->model()` / `$this->load->library()`
+- `$this->input->post()`
+- Extending `CI_Controller` — extend `BaseController` or `Controller`
+- `show_error()` — throw a proper exception instead
+- `$this->db->query()` with raw, interpolated user input
+- Accessing `$_POST`, `$_GET`, `$_SESSION` directly
+- `$this->response->setJSON()` without an explicit HTTP status code
+
+### 4.3 Auth Logout & CSRF (Mandatory Pattern)
+
+Idle sessions + CSRF frequently cause `SecurityException #403 The action you requested is not allowed` on logout.
+
+Always implement logout like this:
+
+1. **Do not require a fresh CSRF token to leave the app.** Prefer a GET `/logout` link, or exempt `logout` from the CSRF filter.
+2. **Do not wrap logout in the `session` auth filter.** An expired/idle session must still reach the logout action so leftover cookies can be cleared and the user is redirected to login.
+3. **Logout action must be idempotent:** if the user is already logged out / session already gone, still destroy any residual session data and redirect to `/login` — never throw CSRF or auth errors.
+4. Example filter exception:
+
+```php
+'csrf' => [
+    'except' => ['logout'],
+],
+```
+
+5. Register logout **outside** the `session`-filtered route group:
+
+```php
+$routes->match(['GET', 'POST'], 'logout', 'ProfileController::logout');
+```
+
+### 4.4 Shield User Bootstrap & Creation (Mandatory when login uses email_hash)
+
+When the project stores `auth_identities.secret` as an **HMAC email hash** (UU PDP / §6 PII) instead of plaintext email, **never** create users with Shield's default CLI or raw inserts. Those paths leave plaintext email in `secret`, leave `email_hash` / `email_cipher` empty, and often leave `active = 0` — login then always fails even with the correct password (the login action looks up a hash that is not in the DB).
+
+**Always:**
+
+1. Create users only through the project's Service layer (e.g. `UserAdminService::createStaffOrAdmin` / `registerOwner`) or an Admin UI that calls that Service — so `secret` = email hash, cipher columns are filled, and `active = 1`.
+2. On a **fresh production install** (no users yet), ship a spark bootstrap command that calls the same Service, e.g. `php spark auth:create-superadmin <email> <password> [pic_name]`. Document that command in the project's `CONTEXT.md` / hosting guide.
+3. Provide a repair command (e.g. `auth:repair-identities`) if plaintext secrets may already exist from a mistaken Shield CLI create.
+4. Login forms use **email** (hashed before Shield `attempt`), not username, unless `CONTEXT.md` says otherwise.
+
+**Never:**
+
+- `php spark shield:user …` (or equivalent Shield generators) to create SuperAdmin / staff / owner when email_hash login is in use
+- Insert into `users` / `auth_identities` manually with plaintext email in `secret`
+- Treat "Invalid login credentials" as "wrong password only" without checking whether `secret` is a 64-char hash vs a readable email
+
+Demo seeders (e.g. `PaketMpSeeder`) may create users for local QA only — never as the production bootstrap path unless `CONTEXT.md` explicitly allows it.
+
+### 4.5 HTMX Response Pattern (Mandatory)
+
+HTMX is the primary AJAX/partial-rendering mechanism for this stack (§2). Controllers behind an `hx-*` request are held to different response rules than a normal full-page route:
+
+- **Detect the request server-side**, never assume: check the `HX-Request` request header (e.g. `$this->request->getHeaderLine('HX-Request') === 'true'`). Never infer "this is an htmx call" from a query string or route name alone.
+- **Return a fragment view, not a full page.** A Controller action serving an `hx-*` swap target must render a View that does **not** `extend` the base layout. Keep these fragment views under `app/Views/<module>/_partials/` so they're never confused with a full-page View for the same route.
+- **Validation errors stay in the fragment.** On a failed validation for an htmx-submitted form, re-render the same form fragment with inline errors (still a 200, or 422 if the project's error convention uses it) — do **not** `redirect()->back()->withInput()`. htmx does not perform a full-page redirect/reload the way a plain form submit does, so a `Location` redirect from a partial swap silently does nothing useful to the user.
+- **Full browser navigation after a mutation** (e.g. after login/logout, or whenever the whole page must change) uses the `HX-Redirect` response header, not `return redirect()->to(...)`. Treat these as two different tools for two different situations, not interchangeable.
+- **Client-side events** (toast notifications, refreshing an unrelated badge/counter elsewhere on the page) go through the `HX-Trigger` response header, which Alpine listens for — don't reinvent this with polling or a second, redundant fetch.
+- **CSRF token, once, globally.** Expose the token via `<meta name="csrf-token" content="<?= csrf_hash() ?>">` in the base layout and attach it to every htmx request through a single `htmx:configRequest` listener in the project's shared JS — never require every `hx-post`/`hx-put`/`hx-delete`/`hx-patch` element to carry its own `hx-headers` CSRF snippet by hand.
+- Every data-mutating `hx-*` element is bound by the same Controller rules as any other route in §5.2 (orchestration only → DTO → Service) — "it's just a partial" is not an exception to the architecture.
+
+### 4.6 Alpine.js Discipline (Mandatory)
+
+Alpine.js exists in this stack for **ephemeral, client-only UI state** — dropdown/modal open-close, sidebar collapse, tabs, theme toggle, small client-only form affordances (character counters, show/hide password). It is not a second data layer:
+
+- Never `fetch()`/`axios` server data from inside `x-data` — any read or write of application data belongs to HTMX (`hx-get`/`hx-post`/etc., §4.5), not Alpine.
+- Keep `x-data` scoped to the smallest DOM node that actually needs it.
+- Reach for `Alpine.store()` only for state genuinely shared across disconnected components on the same page (e.g. a dark-mode flag, a sidebar-collapsed flag) — not as a substitute for server state or a workaround for not wanting to make an htmx round-trip.
+
+---
+
+## 5. ARCHITECTURE
+
+### 5.1 Request Flow
+
+```
+Request → Route → Controller → DTO → Service → Model → Entity → View / Response
+```
+
+### 5.2 Layer Responsibilities
+
+| Layer | Responsibility |
+| --- | --- |
+| Controller | Orchestration only: validate structural input → build DTO → call Service → return view/redirect |
+| DTO | Typed, immutable transport object between Controller and Service |
+| Service | Business logic, transactions, multi-step workflows, tenant-scope enforcement |
+| Model | DB abstraction via Query Builder, maps rows to Entities |
+| Entity | Domain object — typed, no DB access, no HTTP logic |
+| View | Presentation only — `esc()`, partials, no business logic |
+
+### 5.3 Illustrative Example
+
+```php
+// DTO — readonly, constructor-promoted
+final readonly class CreateStudentDto
+{
+    public function __construct(
+        public string $name,
+        public string $email,
+    ) {}
+}
+```
+
+```php
+// Controller — orchestration only, no business logic
+public function store(): RedirectResponse
+{
+    if (! $this->validate($this->createValidationRules())) {
+        return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+    }
+
+    $dto = new CreateStudentDto(
+        name: $this->request->getPost('name'),
+        email: $this->request->getPost('email'),
+    );
+
+    $this->studentService->create($dto);
+
+    return redirect()->to('/students')->with('success', 'Student created.');
+}
+```
+
+### 5.4 Tenant Scoping (Mandatory for Multi-Tenant Projects)
+
+If `CONTEXT.md` declares the project multi-tenant (hierarchical organizational scope, e.g. region/branch/office), the following is **non-negotiable**:
+
+- CI4 has no Eloquent-style automatic global scopes. Tenant filtering must be applied **explicitly, every time**, inside the Service layer — never assume a Model query is safe by default.
+- Every Service method that touches a tenant-scoped table must accept a `TenantContext` (or equivalent value object) derived **only** from the authenticated Shield user's session/group — never from a client-supplied request parameter.
+- Controllers must never pass a raw, client-supplied hierarchy ID (branch ID, region ID, etc.) straight to a Model. It must first pass through the Service, which validates that ID falls within the current user's allowed scope before querying.
+- Build one shared scoping helper/trait (e.g. `TenantScopeTrait`) used consistently across all tenant-scoped Services, rather than reimplementing the `WHERE` constraint ad hoc in every Service.
+- Every Service method with tenant scoping must have a corresponding test asserting that a user from Tenant A **cannot** read or write a record belonging to Tenant B, even by guessing/forging a valid-looking ID.
+
+---
+
+## 6. CODING STANDARDS
+
+- **Controllers** — must validate structural input (presence, type, format), build a DTO, call a Service, and return a view or redirect. Never write SQL or business logic here.
+- **DTOs** — always a `readonly class` with constructor promotion. When a modified copy is needed, use Clone With (§3.1) rather than a manual wither method.
+- **Services** — return clear contracts (`int`, `bool`, an Entity, or an array of Entities). Wrap multi-table writes in a transaction. Enforce tenant scoping here (see 5.4). Mark any method whose return value must not be silently ignored with `#[\NoDiscard]` (§3.1).
+- **Bulk / batch operations exception** — for operations like CSV import, structural validation (file format, required columns, row count) stays in the Controller, but **per-row business-rule validation may live in the Service** when it requires a database lookup (e.g. resolving a `study_group_id`, checking a foreign key exists) that a Controller has no business performing. Document this exception inline with a short comment when used.
+- **Models** — return Entities, never raw arrays. Use explicit `select()` calls; avoid `SELECT *`. **Exception:** if a Model/Entity auto-encrypts or auto-decrypts specific fields via lifecycle callbacks (`beforeInsert`/`afterFind`), the encryption logic must check `array_key_exists()` (or equivalent) before touching a field — never assume an encrypted field is present just because the schema defines it. A narrowed `select()` that omits an encrypted column must not throw.
+- **Entities** — declare properties explicitly; use `$casts` for type coercion.
+- **Security** — CSRF protection enabled, `esc()` on all output, Shield for auth, Query Builder bindings for all SQL. Never expose a raw third-party or internal resource URL (media stream, signed cloud-storage link, internal API endpoint, etc.) directly to the client — generate a short-lived, signed/tokenized URL server-side per request using the Uri extension (§3.6), not `parse_url()`/string concatenation, and log the access event if the resource is sensitive.
+
+### PII — Email, Phone & Username Normalization (UU PDP / Mandatory)
+
+Email addresses and phone numbers are personal data under Indonesia's Personal Data Protection Law (UU PDP). In **every** CI4 project governed by this file:
+
+- **Lowercasing & Normalization Standard (Mandatory):** All **email** addresses and **usernames** MUST be strictly converted to lowercase and trimmed of surrounding spaces (`strtolower(trim($value))`) at the Service/DTO entry point before any validation, encryption, hashing, or DB lookup. This ensures absolute consistency and prevents duplicate/failed lookups caused by casing differences (e.g. `User@domain.com` vs `user@domain.com`). If a project explicitly supports non-ASCII characters in usernames, use `mb_strtolower()` instead of `strtolower()` so multi-byte characters are normalized correctly.
+- Store email and phone **encrypted at rest with authenticated two-way encryption** (preferred: PHP Sodium `sodium_crypto_secretbox`, key from `.env` e.g. `pii.key` or `pii.encryption_key`). Never store plaintext email/phone in application tables. Hosting must have `ext-sodium` enabled.
+- Also store a deterministic **HMAC / lookup hash** of the normalized value for login and uniqueness checks only (`email_hash`). Always use **`hash_hmac('sha256', $normalizedEmail, env('pii.hmac_secret'))`** with a dedicated HMAC secret key from `.env`. Never show the hash to users as if it were the email.
+- **Access PII secrets through a dedicated Config class**, e.g. `Config\Pii` wrapping `env('pii.hmac_secret')` / `env('pii.encryption_key')`, rather than calling `env()` directly from scattered Service code. This keeps secret access testable/mockable and gives one place to validate the secret is actually set at boot time.
+- **HMAC key rotation is a breaking migration, not a config change.** Because the lookup hash is deterministic, rotating `pii.hmac_secret` in production immediately invalidates every existing `email_hash` row — logins and uniqueness checks will fail until every row is re-hashed. Never rotate this secret casually; any rotation must ship with a documented, tested re-hash migration (batch job that decrypts each cipher column, re-derives the hash with the new secret, and updates the row) run before the new secret goes live.
+- Decrypt only in authorized views (own profile, admin detail/reveal). Never dump cipher columns to list UIs.
+- **Never log decrypted PII.** Application logs, exception messages, and error-tracking payloads (Sentry, CI4 logger, query debug output, etc.) must never contain a plaintext/decrypted email or phone number. Mask or omit the value (e.g. log the user ID, not the email) before writing to any log sink.
+- Names / PIC labels may remain plaintext when the product needs them in lists (e.g. "Unit (Nama PIC)").
+- Encryption/decryption helpers and Model lifecycle hooks must tolerate a narrowed `select()` that omits cipher columns (`array_key_exists` / null-safe) — see encrypted-field Model rule above.
+- Any namespaced Sodium helper (e.g. `PiiCipher`) must follow §3.5 — never bare `SODIUM_*` constants.
+- Every project that stores email or phone must include tests covering encrypt/decrypt round-trip (and lookup-hash login matching when auth uses hashed identity secrets).
+
+- **Performance** — paginate lists, never load unbounded result sets, watch for N+1 queries.
+- **Idempotency** — follow the Post-Redirect-Get (PRG) pattern after every write.
+- **File structure** — organize by domain/module, not by file type.
+- **Error handling** — Services throw domain-specific exceptions; Controllers catch them and translate them into the appropriate HTTP response. Never let a raw exception or stack trace leak into a production response — including PHP 8.5's improved fatal-error backtraces, which must never be surfaced to the client or logged with decrypted PII attached.
+- **Testing** — non-trivial Services and business logic should have a corresponding PHPUnit test using CI4's `CIUnitTestCase` where practical. Tenant-scoping logic and any encryption/decryption lifecycle hook are never "where practical" — they always require a test.
+
+---
+
+## 7. ABSOLUTE PROHIBITIONS
+
+Never:
+
+- Put business logic in a Controller
+- Put SQL in a Controller or a View
+- Use `$_POST`, `$_GET`, or `$_SESSION` directly
+- Use CI3-style loading (`$this->load->...`)
+- Suppress or silently swallow exceptions
+- Roll custom authentication or password hashing
+- Store secrets or API keys in code
+- Store email or phone numbers as plaintext in the database (UU PDP — encrypt at rest; use lookup hashes for auth/uniqueness)
+- Accept or process emails or usernames without converting them to lowercase (`strtolower(trim(...))` or `mb_strtolower(trim(...))` for non-ASCII usernames)
+- Generate HMAC hashes without using `HMAC-SHA256` and a dedicated `pii.hmac_secret`
+- Rotate `pii.hmac_secret` in production without a documented, tested re-hash migration (see §6)
+- Log, print, or forward a decrypted email/phone value to any log, error tracker, or exception message
+- Use `parse_url()` for any URL that feeds an access-control, redirect, or signed-link decision — use the Uri extension (§3.6) instead
+- Create Shield users via `php spark shield:user` (or raw SQL) when login uses HMAC email_hash in `auth_identities.secret` — use the project Service / `auth:create-superadmin` instead (§4.4)
+- Show email or phone in list/index UIs without an explicit authorized detail action
+- Leave a login, registration, password-reset, or OTP route without Throttler/rate-limiting protection
+- Trust client input without server-side validation
+- Trust a client-supplied tenant/hierarchy ID without validating it against the authenticated user's own scope
+- Expose a raw streaming/media/internal resource URL directly to the client
+- Generate pseudo-code — always produce a full, working implementation
+- Leave placeholder comments like `// TODO` or `// implement this`
+
+---
+
+## 8. CODE GENERATION CHECKLIST
+
+When generating any code, always:
+
+- [ ] Generate the full file — never a partial snippet, unless explicitly asked for one
+- [ ] Include `declare(strict_types=1);`
+- [ ] Include the correct `namespace` and `use` statements
+- [ ] Follow the architecture and layering rules above
+- [ ] If generating an admin View, confirm `reference/tailadmin` was checked/adapted first (§2.1) instead of inventing markup from scratch
+- [ ] If the endpoint is served behind `hx-*`, confirm the Controller detects `HX-Request` and returns a fragment view, not a full-layout view (§4.5)
+- [ ] If an htmx-submitted form fails validation, confirm the fragment is re-rendered with inline errors instead of `redirect()->back()` (§4.5)
+- [ ] If a full browser navigation must follow an htmx-triggered mutation, confirm `HX-Redirect` is used instead of `redirect()->to()` (§4.5)
+- [ ] If Alpine.js code reads or writes server data directly (`fetch`/`axios` inside `x-data`), flag it — that belongs to HTMX (§4.6)
+- [ ] Ensure all input emails and usernames are lowercased and trimmed before processing
+- [ ] If calculating an email lookup hash, confirm it uses `hash_hmac('sha256', $normalizedEmail, env('pii.hmac_secret'))` accessed via a Config class, not a bare `env()` call in Service code
+- [ ] If the table/Service is tenant-scoped, confirm the scope is enforced server-side from session, not from request input
+- [ ] If a field is auto-encrypted/decrypted, confirm the hook degrades safely when the field is absent from a narrowed `select()`
+- [ ] If using Sodium / other extension globals inside a namespace, use `\CONSTANT` or private size constants — never bare `SODIUM_*` (§3.5)
+- [ ] If the feature stores email or phone, confirm cipher + lookup-hash columns (no plaintext), that list UIs do not expose them, and that no code path logs the decrypted value
+- [ ] If auth uses email_hash login, confirm user creation goes through the Service / bootstrap spark command — never `shield:user` (§4.4)
+- [ ] If the route checks a password, OTP, or lookup hash (login, register, reset, verify), confirm a Throttler/rate-limit filter is applied
+- [ ] If a URL is parsed, validated, or rebuilt anywhere that affects access control or a redirect target, confirm `Uri\Rfc3986\Uri` / `Uri\WhatWg\Url` is used instead of `parse_url()` (§3.6)
+- [ ] If a `readonly` DTO/Entity needs a modified copy, confirm Clone With is used instead of a manual wither/rebuild (§3.1)
+- [ ] If a Service method's return value must not be ignored, confirm `#[\NoDiscard]` is applied (§3.1)
+- [ ] Prefer native CI4 solutions over third-party packages unless `CONTEXT.md` says otherwise
+- [ ] Write readable, maintainable code over clever one-liners
