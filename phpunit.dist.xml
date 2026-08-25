@@ -60,5 +60,9 @@
             <env name="database.tests.DBDriver" value="MySQLi"/>
             <env name="database.tests.DBPrefix" value="tests_"/>
             -->
+        <!-- ADR-008 test keys (64 hex each, distinct). Not production secrets. -->
+        <env name="EMAIL_ENCRYPTION_KEY" value="e49df5a504b3e8f1ca7dff30c57a4f7fa75d75780e748ec3c093bcd288e9383e"/>
+        <env name="EMAIL_LOOKUP_HMAC_KEY" value="be3a78d9d3dc3a874f32ce45f215316506e7c7cc98d99fc95a29ff3f9dfbd752"/>
+        <env name="skey" value="test-admin-recovery-secret-not-for-production"/>
     </php>
 </phpunit>

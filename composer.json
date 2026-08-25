@@ -1,6 +1,6 @@
 {
-    "name": "codeigniter4/appstarter",
-    "description": "CodeIgniter4 starter app",
+    "name": "mrferryict/simpleweb",
+    "description": "SMITE CMS — single-organization public Content Management System",
     "license": "MIT",
     "type": "project",
     "homepage": "https://codeigniter.com",
@@ -10,8 +10,9 @@
         "slack": "https://codeigniterchat.slack.com"
     },
     "require": {
-        "php": "^8.2",
-        "codeigniter4/framework": "^4.7"
+        "php": "^8.5",
+        "codeigniter4/framework": "^4.7",
+        "codeigniter4/shield": "^1.4"
     },
     "require-dev": {
         "fakerphp/faker": "^1.9",

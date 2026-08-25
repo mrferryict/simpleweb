@@ -1,0 +1,33 @@
+/**
+ * Minimal Control Panel helpers for Quill + textarea fallback (Phase 3 / Task 3.5).
+ * Quill Snow theme CSS remains in quill.snow.css.
+ */
+
+.smite-quill-editor {
+    display: block;
+    width: 100%;
+    max-width: 48rem;
+}
+
+.smite-quill-editor .ql-toolbar.ql-snow,
+.smite-quill-editor .ql-container.ql-snow {
+    background: #fff;
+}
+
+.smite-quill-editor .ql-container.ql-snow {
+    min-height: 12rem;
+}
+
+/* When Quill initializes, keep the backing textarea in the DOM for submit/fallback,
+   but hide it visually. Without JS, this class is never applied. */
+.smite-quill-fallback.smite-quill-fallback--active-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}

@@ -1,7 +1,7 @@
 # CURSORRULES — CodeIgniter 4.7+ & PHP 8.5+
 **Scope:** Global rules, applies to every CodeIgniter 4 project
-**Version:** 4.7 (adds TailAdmin as the default local admin-UI reference in §2.1, and mandatory HTMX response-pattern / Alpine.js discipline rules in §4.5–§4.6)
-**Last updated:** 5 August 2026
+**Version:** 4.8 (adds Model instantiation clarification in §4.1, migration hygiene in §4.7, and Error Handling / Logging / Caching / Environment Config conventions in §6)
+**Last updated:** 21 August 2026
 
 ---
 
@@ -174,7 +174,7 @@ PHP 8.5's built-in Uri extension provides two standards-compliant, object-orient
 ### 4.1 Always Use
 
 - Standard PHP `__construct()` for dependency injection in Controllers, Models, and Services. Only override `initController()` when you genuinely need the framework-instantiated `$request` / `$response` / `$logger` properties during initialization.
-- `model(ClassName::class)` to load models
+- `model(ClassName::class)` to load a Model inside a Controller or Service. Constructor-inject the Model instead only when a Service genuinely needs it swapped for a test double in a unit test. **Never** instantiate a Model with `new SomeModel()` directly — it bypasses CI4's connection/config wiring (`model()` and DI both go through the framework's factory; a bare `new` does not reliably).
 - `service('serviceName')` to load services
 - `$this->request->getPost()` / `$this->request->getGet()` — never raw superglobals
 - CI4's Validation class (and the Controller's `validate()` / `$this->validator`) for all input validation
@@ -258,6 +258,14 @@ Alpine.js exists in this stack for **ephemeral, client-only UI state** — dropd
 - Never `fetch()`/`axios` server data from inside `x-data` — any read or write of application data belongs to HTMX (`hx-get`/`hx-post`/etc., §4.5), not Alpine.
 - Keep `x-data` scoped to the smallest DOM node that actually needs it.
 - Reach for `Alpine.store()` only for state genuinely shared across disconnected components on the same page (e.g. a dark-mode flag, a sidebar-collapsed flag) — not as a substitute for server state or a workaround for not wanting to make an htmx round-trip.
+
+### 4.7 Migration & Seeder Hygiene
+
+- Generate every migration with `php spark make:migration <Name>` and let CI4 name the file (`YYYY-MM-DD-HHiiss_Name.php`) — never hand-write or backdate a migration filename.
+- Every migration implements both `up()` and `down()`. If a rollback is genuinely unsafe (e.g. a destructive data transform), `down()` still exists and throws or logs a clear "not reversible" notice — it is never silently empty.
+- **Never edit a migration file that has already run in any shared environment** (staging, production, or a teammate's machine) — schema drift between environments from a "fixed" migration is a recurring source of production incidents. Ship the correction as a new migration instead.
+- Use `$this->forge->addField()` / `addKey()` / `addForeignKey()` with explicit column definitions — avoid raw `$this->db->query('ALTER TABLE ...')` inside a migration.
+- Seeders (`php spark db:seed`) stay separate from migrations and are never part of the production bootstrap path unless `CONTEXT.md` explicitly says so (see the demo-seeder note in §4.4).
 
 ---
 
@@ -353,7 +361,13 @@ Email addresses and phone numbers are personal data under Indonesia's Personal D
 - **Performance** — paginate lists, never load unbounded result sets, watch for N+1 queries.
 - **Idempotency** — follow the Post-Redirect-Get (PRG) pattern after every write.
 - **File structure** — organize by domain/module, not by file type.
-- **Error handling** — Services throw domain-specific exceptions; Controllers catch them and translate them into the appropriate HTTP response. Never let a raw exception or stack trace leak into a production response — including PHP 8.5's improved fatal-error backtraces, which must never be surfaced to the client or logged with decrypted PII attached.
+- **Error handling** — Services throw domain-specific exceptions extending a shared base (e.g. `App\Exceptions\DomainException`); Controllers catch them and translate them into the appropriate HTTP response. Never let a raw exception or stack trace leak into a production response — including PHP 8.5's improved fatal-error backtraces, which must never be surfaced to the client or logged with decrypted PII attached.
+  - Suggested baseline HTTP mapping (a project's `CONTEXT.md` may refine this if it already has its own taxonomy): validation failure → 422, not-found → 404, forbidden/unauthorized → 403, conflict/duplicate → 409, everything unexpected → 500 (log full detail server-side, show a generic message to the user).
+  - For an htmx-served endpoint (§4.5), a caught domain exception re-renders the same fragment with inline errors — never a full error page — using the same status codes above.
+  - Catch the specific domain exception(s) a Controller knows how to translate — never a blanket `catch (\Throwable $e) {}` just to swallow it (already prohibited in §7); let anything genuinely unexpected propagate to CI4's global exception handler.
+- **Logging** — use CI4's `log_message()` / an injected `LoggerInterface`; never `error_log()` or a leftover `var_dump()`/`dd()` in shipped code. Standard levels: `debug` (dev/query detail, stripped in prod), `info` (user-triggered actions: login, create/update/delete), `warning` (recoverable failures, retries), `error` (caught exceptions), `critical` (system down, data corruption). Every log line for a user-triggered action should carry enough context to trace it later (e.g. `user_id`, route/action, tenant scope if applicable) — but never the PII values themselves; the PII rules above already forbid a decrypted email/phone in any log sink, and that includes error-tracker payloads (Sentry or similar).
+- **Caching** — use CI4's Cache service (`service('cache')`); never a hand-rolled file/array cache. Key format `{module}:{entity}:{id}[:{variant}]` (e.g. `student:profile:123`). Default to the File cache handler on shared hosting (per ADR-009) and reach for Redis/Memcached only when the hosting environment actually provides it — record which handler a given project uses in its `CONTEXT.md`. Invalidate explicitly on create/update/delete of the cached entity; never cache a PII field, and never cache a tenant-scoped value under a key another tenant's request could collide with (§5.4).
+- **Environment (`.env`)** — every required variable has a placeholder entry with a comment in a committed `.env.example`; the real `.env` is never committed. Group entries by concern (`# APP`, `# DATABASE`, `# PII ENCRYPTION`, `# THIRD PARTY`, etc.) for readability. Any secret (`pii.encryption_key`, `pii.hmac_secret`, API keys) is read only through a dedicated Config class — the pattern already mandated for PII secrets above applies to every other secret too — never a bare `env()` call scattered through Service code. Validate that critical variables are actually set at boot (e.g. in `app/Config/Boot/production.php`) so a missing secret fails fast and loud, rather than surfacing as a confusing runtime error deep in a request.
 - **Testing** — non-trivial Services and business logic should have a corresponding PHPUnit test using CI4's `CIUnitTestCase` where practical. Tenant-scoping logic and any encryption/decryption lifecycle hook are never "where practical" — they always require a test.
 
 ---
@@ -410,5 +424,10 @@ When generating any code, always:
 - [ ] If a URL is parsed, validated, or rebuilt anywhere that affects access control or a redirect target, confirm `Uri\Rfc3986\Uri` / `Uri\WhatWg\Url` is used instead of `parse_url()` (§3.6)
 - [ ] If a `readonly` DTO/Entity needs a modified copy, confirm Clone With is used instead of a manual wither/rebuild (§3.1)
 - [ ] If a Service method's return value must not be ignored, confirm `#[\NoDiscard]` is applied (§3.1)
+- [ ] If a Service throws a domain exception, confirm it maps to the correct HTTP status per the §6 convention, and that an htmx failure re-renders a fragment rather than a full error page
+- [ ] If new code writes a log line, confirm it uses `log_message()` / an injected logger — never `error_log()`/`var_dump()`/`dd()` — with an appropriate level and no PII value (§6)
+- [ ] If a value is cached, confirm it goes through `service('cache')` with a `{module}:{entity}:{id}` key, is explicitly invalidated on writes, and never holds a PII value or a value another tenant's key could collide with
+- [ ] If a new environment variable is introduced, confirm it's documented in `.env.example` and, if it's a secret, accessed through a Config class rather than a bare `env()` call
+- [ ] If a schema change is needed and the migration already ran anywhere, confirm a new migration is written rather than editing the existing one (§4.7)
 - [ ] Prefer native CI4 solutions over third-party packages unless `CONTEXT.md` says otherwise
 - [ ] Write readable, maintainable code over clever one-liners

@@ -1,69 +1,74 @@
-# CodeIgniter 4 Application Starter
+# SMITE CMS
 
-## What is CodeIgniter?
+SMITE CMS is a single-organization, single-website public Content Management System
+built on CodeIgniter 4. It is not a website builder.
 
-CodeIgniter is a PHP full-stack web framework that is light, fast, flexible and secure.
-More information can be found at the [official site](https://codeigniter.com).
+Official release: **v1.0.0**
 
-This repository holds a composer-installable app starter.
-It has been built from the
-[development repository](https://github.com/codeigniter4/CodeIgniter4).
+## Requirements
 
-More information about the plans for version 4 can be found in [CodeIgniter 4](https://forum.codeigniter.com/forumdisplay.php?fid=28) on the forums.
+- **PHP 8.5+**
+- Required extensions include at least: `intl`, `mbstring`, `gd`, `sodium`, and MySQL/MariaDB drivers
+- **MariaDB** (MySQL-compatible)
+- **Composer**
+- **Git**
+- HTTPS in production
+- Cron (for scheduled publish/unpublish)
+- SMTP (password recovery / notifications)
+- Writable application storage for cache and uploads
+- **File cache** (no Redis required)
+- **No Docker**, **no Redis**, **no queue workers** required for V1
 
-You can read the [user guide](https://codeigniter.com/user_guide/)
-corresponding to the latest version of the framework.
+## Quick start (new installation)
 
-## Installation & updates
+1. Clone this repository (prefer the `v1.0.0` tag for a known release).
+2. Follow **[docs/client/INSTALLATION.md](docs/client/INSTALLATION.md)** end-to-end.
+3. After install:
+   - Public site: `https://YOUR-DOMAIN/`
+   - Control Panel: `https://YOUR-DOMAIN/cp`
 
-`composer create-project codeigniter4/appstarter` then `composer update` whenever
-there is a new release of the framework.
+First Admin credentials are **never hard-coded**. Provide them via CLI flags or environment variables at install time (see installation guide). Placeholders:
 
-When updating, check the release notes to see if there are any changes you might need to apply
-to your `app` folder. The affected files can be copied or merged from
-`vendor/codeigniter4/framework/app`.
+```text
+cms.install.admin_username = YOUR_ADMIN_USERNAME
+cms.install.admin_email    = YOUR_ADMIN_EMAIL
+cms.install.admin_password = YOUR_ADMIN_PASSWORD
+```
 
-## Setup
+## Updating an existing installation
 
-Copy `env` to `.env` and tailor for your app, specifically the baseURL
-and any database settings.
+Follow **[docs/client/UPDATE.md](docs/client/UPDATE.md)**.
 
-## Important Change with index.php
+Do **not** run `composer update` in production. Use `composer install --no-dev` from the lockfile.
 
-`index.php` is no longer in the root of the project! It has been moved inside the *public* folder,
-for better security and separation of components.
+## Client documentation
 
-This means that you should configure your web server to "point" to your project's *public* folder, and
-not to the project root. A better practice would be to configure a virtual host to point there. A poor practice would be to point your web server to the project root and expect to enter *public/...*, as the rest of your logic and the
-framework are exposed.
+| Document | Purpose |
+|---|---|
+| [INSTALLATION.md](docs/client/INSTALLATION.md) | New server install |
+| [FIRST-RUN.md](docs/client/FIRST-RUN.md) | First login and site setup |
+| [CONFIGURATION.md](docs/client/CONFIGURATION.md) | `.env` and operational config |
+| [UPDATE.md](docs/client/UPDATE.md) | Safe production updates |
+| [BACKUP-RESTORE.md](docs/client/BACKUP-RESTORE.md) | Database + uploads pairing |
+| [PRODUCTION-CHECKLIST.md](docs/client/PRODUCTION-CHECKLIST.md) | Go-live checklist |
 
-**Please** read the user guide for a better explanation of how CI4 works!
+Internal architecture / product docs remain under [`docs/`](docs/) and [`adr/`](adr/).
 
-## Repository Management
+## Security warnings
 
-We use GitHub issues, in our main repository, to track **BUGS** and to track approved **DEVELOPMENT** work packages.
-We use our [forum](http://forum.codeigniter.com) to provide SUPPORT and to discuss
-FEATURE REQUESTS.
+- Never commit `.env`, passwords, encryption keys, or HMAC secrets.
+- Keep the web server document root on `/public` — not the repository root.
+- Generate unique production values for `skey`, `EMAIL_ENCRYPTION_KEY`, and `EMAIL_LOOKUP_HMAC_KEY`.
+- Back up **MariaDB** and **`writable/uploads/`** together.
 
-This repository is a "distribution" one, built by our release preparation script.
-Problems with it can be raised on our forum, or as issues in the main repository.
+## Scheduler
 
-## Server Requirements
+```bash
+* * * * * php /path/to/project/spark cms:scheduled-content
+```
 
-PHP version 8.2 or higher is required, with the following extensions installed:
+Exact path depends on hosting. See installation and production checklist documents.
 
-- [intl](http://php.net/manual/en/intl.requirements.php)
-- [mbstring](http://php.net/manual/en/mbstring.installation.php)
+## License
 
-> [!WARNING]
-> - The end of life date for PHP 7.4 was November 28, 2022.
-> - The end of life date for PHP 8.0 was November 26, 2023.
-> - The end of life date for PHP 8.1 was December 31, 2025.
-> - If you are still using below PHP 8.2, you should upgrade immediately.
-> - The end of life date for PHP 8.2 will be December 31, 2026.
-
-Additionally, make sure that the following extensions are enabled in your PHP:
-
-- json (enabled by default - don't turn it off)
-- [mysqlnd](http://php.net/manual/en/mysqlnd.install.php) if you plan to use MySQL
-- [libcurl](http://php.net/manual/en/curl.requirements.php) if you plan to use the HTTP\CURLRequest library
+See [LICENSE](LICENSE).

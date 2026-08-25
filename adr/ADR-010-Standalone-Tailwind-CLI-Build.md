@@ -52,6 +52,29 @@ Production templates SHALL NOT load Tailwind through any runtime CDN/Play CDN me
 
 Penggunaan Play CDN hanya diizinkan untuk keperluan eksplorasi dan prototyping cepat lokal, dan kode aplikasi dilarang bergantung pada CDN tersebut agar UI dapat berfungsi.
 
+Control Panel Third-Party JavaScript / CSS Vendoring (Alpine.js, Quill):
+
+Control Panel client libraries required by ADR-014 (Alpine.js 3 and Quill 2.x, including Quill CSS) SHALL be delivered as pinned, vendored static files under:
+
+public/assets/admin/js/
+public/assets/admin/css/
+
+These files are Git/release artifacts, served directly by the web server (Nginx/Apache), and usable identically in development and production.
+
+Production templates SHALL NOT load Alpine.js, Quill, or Quill CSS from any runtime CDN, remote URL, or dynamic download.
+
+Production hosting SHALL NOT require Node.js, npm, npx, Vite, or Webpack to serve these libraries.
+
+Exact pinned versions, provenance, licenses, and destination filenames are recorded in:
+
+public/assets/admin/ASSETS.md
+
+and MUST be updated whenever a vendored library is upgraded.
+
+Asset update policy: bump only via an intentional developer workstation acquisition from the recorded official source (npm package dist / upstream release artifact), verify license/provenance, replace the pinned files, update ASSETS.md, and commit the new artifacts. Do not introduce package.json, node_modules, or a production Node toolchain for Control Panel boot.
+
+Application PHP, Views, and Services remain outside public/. No SPA framework is introduced.
+
 Consequences
 
 Positif:
@@ -75,6 +98,8 @@ View template yang ditujukan untuk rilis produksi dilarang memuat tag script com
 Script build atau Makefile/Composer script lokal wajib memisahkan build perintah untuk tema publik dan Control Panel.
 
 CI/Deployment verification wajib memeriksa keberadaan file fisik CSS di public/themes/{theme_id}/css/app.css dan public/assets/admin/css/admin.css sebelum proses rilis dinyatakan lengkap.
+
+CI/Deployment verification for Control Panel RICH_TEXT / Alpine UI MUST also confirm the pinned vendored files listed in public/assets/admin/ASSETS.md exist under public/assets/admin/js/ and public/assets/admin/css/ before a release that enables Quill is declared complete.
 
 References
 

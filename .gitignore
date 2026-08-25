@@ -64,6 +64,14 @@ Vagrantfile
 /writable/uploads/*
 !/writable/uploads/index.html
 
+# Public image derivatives / local upload mirrors (never commit client media)
+/public/uploads/*
+!/public/uploads/index.html
+!/public/uploads/images/
+!/public/uploads/images/index.html
+!/public/uploads/documents/
+!/public/uploads/documents/index.html
+
 /writable/debugbar/*
 !/writable/debugbar/index.html
 

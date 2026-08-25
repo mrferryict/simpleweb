@@ -82,6 +82,14 @@ Restore Revision: Historical Snapshot → RichTextSanitizer → ContentSchemaVal
 
 Data Import / Migration: Seluruh data teks berformat dari sumber luar wajib melewati RichTextSanitizer.
 
+Control Panel Asset Delivery (delegates to ADR-010):
+
+Alpine.js 3 and Quill 2.x (including Quill CSS) SHALL be delivered as pinned vendored static files under public/assets/admin/ as defined by ADR-010.
+
+Exact pinned versions, licenses, provenance, and destination paths are recorded in public/assets/admin/ASSETS.md.
+
+Production Control Panel templates SHALL NOT load Alpine.js or Quill from a runtime CDN.
+
 Consequences
 
 Positif:
@@ -106,6 +114,10 @@ Inisialisasi Quill wajib dibungkus dalam komponen Alpine.js dan menyinkronkan da
 
 Unit/Security tests wajib menguji injeksi tag <script>, tag <img>, atribut onerror, iframe, dan skema URL javascript: untuk memastikan sanitizer membersihkan elemen tersebut dari payload akhir.
 
+Alpine.js / Quill SHALL be loaded only from the pinned vendored paths in public/assets/admin/ (ADR-010 / ASSETS.md).
+
+Quill remains a UX tool only; RichTextSanitizer remains the sole HTML security boundary.
+
 References
 
 docs/01-Product-Requirements.md (REQ-CONT-003, REQ-UX-001, REQ-UX-003)
@@ -119,5 +131,7 @@ docs/10-Testing-Quality-Strategy.md (Section 15)
 docs/adr/ADR-004-Native-Content-Schema-Validator.md
 
 docs/adr/ADR-005-Revision-Autosave-Concurrency.md
+
+docs/adr/ADR-010-Standalone-Tailwind-CLI-Build.md
 
 docs/adr/ADR-013-Standard-Layered-CI4-Architecture.md
