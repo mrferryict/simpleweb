@@ -1,0 +1,15 @@
+/**
+ * SMITE 2026 — Tailwind v4 build input (ADR-010).
+ *
+ * Build on developer workstation with Tailwind standalone CLI (no package.json):
+ *
+ *   tailwindcss -i resources/themes/2026/css/app.input.css \
+ *     -o public/themes/2026/css/app.css --minify
+ *
+ * Commit the compiled public/themes/2026/css/app.css as the release artifact.
+ *
+ * When the standalone binary is unavailable, edit public/themes/2026/css/app.css directly.
+ */
+@import "tailwindcss";
+
+@source "../../../app/Views/themes/2026";

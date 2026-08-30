@@ -49,6 +49,7 @@ final class ThemeDiscoveryLifecycleTest extends CIUnitTestCase
         $ids = $this->themes->discoverThemeIds();
         $this->assertContains('default', $ids);
         $this->assertContains('classic', $ids);
+        $this->assertContains('2026', $ids);
         $this->assertContains('draft-only', $ids);
     }
 
@@ -104,18 +105,19 @@ final class ThemeDiscoveryLifecycleTest extends CIUnitTestCase
         $ids    = array_column($listed, 'id');
         $this->assertContains('default', $ids);
         $this->assertContains('classic', $ids);
+        $this->assertContains('2026', $ids);
     }
 
     public function testManyThemesCanBeEnabled(): void
     {
         $config = config(ThemeConfig::class);
-        $this->assertGreaterThanOrEqual(2, count($config->enabledThemeIds));
-        $this->assertCount(2, $this->themes->listEnabledThemesForAdmin());
+        $this->assertGreaterThanOrEqual(3, count($config->enabledThemeIds));
+        $this->assertCount(3, $this->themes->listEnabledThemesForAdmin());
     }
 
     public function testExactlyOneActiveThemeResolved(): void
     {
-        $this->assertSame('default', $this->themes->activeThemeId());
+        $this->assertSame('2026', $this->themes->activeThemeId());
         $activeCount = 0;
         foreach ($this->themes->listEnabledThemesForAdmin() as $theme) {
             if ($theme['is_active']) {
@@ -129,7 +131,7 @@ final class ThemeDiscoveryLifecycleTest extends CIUnitTestCase
     {
         $errors = $this->themes->activate('draft-only', $this->userWith(['theme.activate']));
         $this->assertArrayHasKey('theme_id', $errors);
-        $this->assertSame('default', $this->themes->activeThemeId());
+        $this->assertSame('2026', $this->themes->activeThemeId());
     }
 
     public function testNonEnabledThemeCannotBecomeActive(): void
@@ -161,7 +163,7 @@ final class ThemeDiscoveryLifecycleTest extends CIUnitTestCase
     public function testBootstrapFallbackWhenNoPersistedValue(): void
     {
         $this->assertNull(Services::settingService(getShared: false)->getPersistedActiveThemeId());
-        $this->assertSame('default', $this->themes->activeThemeId());
+        $this->assertSame('2026', $this->themes->activeThemeId());
     }
 
     public function testInvalidPersistedActiveDoesNotSilentlyActivateDraft(): void
@@ -190,7 +192,7 @@ final class ThemeDiscoveryLifecycleTest extends CIUnitTestCase
     {
         $errors = $this->themes->activate('classic', $this->userWithout('theme.activate'));
         $this->assertArrayHasKey('_forbidden', $errors);
-        $this->assertSame('default', $this->themes->activeThemeId());
+        $this->assertSame('2026', $this->themes->activeThemeId());
     }
 
     public function testActivationDemotesPreviousActiveTheme(): void
@@ -201,11 +203,11 @@ final class ThemeDiscoveryLifecycleTest extends CIUnitTestCase
 
         $fresh = Services::themeService(getShared: false);
         $listed = $fresh->listEnabledThemesForAdmin();
-        $default = array_values(array_filter($listed, static fn (array $row): bool => $row['id'] === 'default'))[0];
-        $classic = array_values(array_filter($listed, static fn (array $row): bool => $row['id'] === 'classic'))[0];
-        $this->assertFalse($default['is_active']);
+        $theme2026 = array_values(array_filter($listed, static fn (array $row): bool => $row['id'] === '2026'))[0];
+        $classic   = array_values(array_filter($listed, static fn (array $row): bool => $row['id'] === 'classic'))[0];
+        $this->assertFalse($theme2026['is_active']);
         $this->assertTrue($classic['is_active']);
-        $this->assertSame(ThemeState::Enabled->value, $default['state']);
+        $this->assertSame(ThemeState::Enabled->value, $theme2026['state']);
     }
 
     public function testPreviousActiveRemainsEnabledAfterActivation(): void
@@ -214,6 +216,7 @@ final class ThemeDiscoveryLifecycleTest extends CIUnitTestCase
         $this->assertSame([], $this->themes->activate('classic', $admin));
         $this->assertSame(ThemeState::Draft, $this->themes->themeState('draft-only'));
         $this->assertSame(ThemeState::Enabled, $this->themes->themeState('default'));
+        $this->assertSame(ThemeState::Enabled, $this->themes->themeState('2026'));
         $this->assertSame(ThemeState::Active, $this->themes->themeState('classic'));
     }
 

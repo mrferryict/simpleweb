@@ -73,9 +73,9 @@ final class AuditAccessTest extends CIUnitTestCase
 
     public function testAuditNavGuardedByAuditViewPermission(): void
     {
-        $layout = file_get_contents(APPPATH . 'Views/admin/layouts/main.php');
-        $this->assertNotFalse($layout);
-        $this->assertStringContainsString("can('audit.view')", $layout);
-        $this->assertStringContainsString('admin/audit', $layout);
+        $navigation = file_get_contents(APPPATH . 'Views/admin/_partials/navigation.php');
+        $this->assertNotFalse($navigation);
+        $this->assertStringContainsString("can('audit.view')", $navigation);
+        $this->assertStringContainsString('admin/audit', $navigation);
     }
 }

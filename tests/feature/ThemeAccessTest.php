@@ -38,9 +38,9 @@ final class ThemeAccessTest extends CIUnitTestCase
 
     public function testThemeNavGuardedByThemeActivatePermission(): void
     {
-        $layout = file_get_contents(APPPATH . 'Views/admin/layouts/main.php');
-        $this->assertNotFalse($layout);
-        $this->assertStringContainsString("can('theme.activate')", $layout);
-        $this->assertStringContainsString('admin/themes', $layout);
+        $navigation = file_get_contents(APPPATH . 'Views/admin/_partials/navigation.php');
+        $this->assertNotFalse($navigation);
+        $this->assertStringContainsString("can('theme.activate')", $navigation);
+        $this->assertStringContainsString('admin/themes', $navigation);
     }
 }

@@ -26,7 +26,7 @@ The example file is organized into seven sections: Environment, Application, Dat
 | `app.CSPEnabled` | V1 baseline: `false` |
 | `app.appTimezone` | PHP timezone for the application (e.g. `Asia/Jakarta`) |
 
-Site-level timezone and locale are also configurable in the Control Panel after install (`Config\Site` bootstrap defaults are persisted by `cms:install`).
+Site-level timezone and locale are also configurable in the Control Panel after install (`Config\Site` bootstrap defaults are persisted by `cms:install`). See [ADMIN-CONTROL-PANEL.md](ADMIN-CONTROL-PANEL.md) for `/cp` vs `/admin` and the main administration areas.
 
 ### Session and cache
 

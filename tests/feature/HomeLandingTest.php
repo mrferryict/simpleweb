@@ -36,8 +36,10 @@ final class HomeLandingTest extends CIUnitTestCase
 
         $result->assertStatus(200);
         $body = (string) $result->response()->getBody();
-        $this->assertStringContainsString('Website is ready.', $body);
-        $this->assertStringContainsString('/cp', $body);
+        $this->assertStringContainsString('About Us', $body);
+        $this->assertStringContainsString('app.css', $body);
+        $this->assertStringNotContainsString('Website is ready.', $body);
+        $this->assertStringContainsString('Control Panel', $body);
         $this->assertStringNotContainsString('Welcome to CodeIgniter', $body);
         $this->assertSame(0, db_connect()->table('pages')->countAllResults());
     }

@@ -1,6 +1,9 @@
 <?php
+
+declare(strict_types=1);
+
 /**
- * Post create/edit form (Phase 3–4 / Tasks 3.7–4.1).
+ * Post create/edit form (Phase 3–4 / Tasks 3.7–4.1 / TH-007 polish).
  *
  * Content fields from ACTIVE Theme → templates.custom-post (no template selector).
  * Lifecycle: Publish / Unpublish / Archive / Submit for Review / Review (DOC-04; ADR-020).
@@ -24,6 +27,7 @@
  * @var bool $canReturnForRevision
  * @var bool $canViewRevisions
  */
+$activeNav = 'posts';
 $selectedCategories = $item['category_ids'] ?? [];
 $selectedTags       = $item['tag_ids'] ?? [];
 if (! is_array($selectedCategories)) {
@@ -52,99 +56,104 @@ $hasLifecycleActions  = $canPublish || $canUnpublish || $canArchive || $canSubmi
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
-    <h1><?= esc($mode === 'edit' ? 'Edit post' : 'New post') ?></h1>
-    <p>
-        <a href="<?= esc(site_url('admin/posts')) ?>"><?= esc('Back to Posts') ?></a>
-        <?php if ($canViewRevisions && ! empty($item['id'])) : ?>
-            · <a href="<?= esc(site_url('admin/posts/' . (int) $item['id'] . '/revisions')) ?>"><?= esc('Revision history') ?></a>
+    <header class="admin-page-header">
+        <div>
+            <h1 class="admin-page-header__title"><?= esc($mode === 'edit' ? 'Edit post' : 'New post') ?></h1>
+            <p class="admin-page-header__lead">
+                <?= esc($mode === 'edit'
+                    ? 'Update post content, taxonomy, SEO, and publication settings.'
+                    : 'Create a new post for your website news and articles.') ?>
+            </p>
+        </div>
+    </header>
+
+    <div class="admin-form-toolbar">
+        <div class="admin-form-toolbar__links">
+            <a href="<?= esc(site_url('admin/posts')) ?>"><?= esc('← Back to Posts') ?></a>
+            <?php if ($canViewRevisions && ! empty($item['id'])) : ?>
+                <a href="<?= esc(site_url('admin/posts/' . (int) $item['id'] . '/revisions')) ?>"><?= esc('Revision history') ?></a>
+            <?php endif; ?>
+        </div>
+        <?php if (! empty($item['status'])) : ?>
+            <div class="admin-form-meta">
+                <?= view('admin/_partials/status_badge', ['status' => (string) $item['status']]) ?>
+            </div>
         <?php endif; ?>
-    </p>
+    </div>
 
-    <?php if (! empty($success)) : ?>
-        <p role="status"><?= esc((string) $success) ?></p>
-    <?php endif; ?>
-    <?php if (! empty($flashError)) : ?>
-        <p role="alert"><?= esc((string) $flashError) ?></p>
-    <?php endif; ?>
-
-    <?php if ($errors !== []) : ?>
-        <ul role="alert">
-            <?php foreach ($errors as $message) : ?>
-                <li><?= esc((string) $message) ?></li>
-            <?php endforeach; ?>
-        </ul>
-    <?php endif; ?>
-
-    <?php if (! empty($item['status'])) : ?>
-        <p><?= esc('Status: ' . $item['status']) ?></p>
-    <?php endif; ?>
+    <?= view('admin/_partials/flash_messages', [
+        'success' => $success,
+        'error'   => $flashError,
+        'errors'  => $errors ?? [],
+    ]) ?>
 
     <?php if ($mode === 'edit' && ! empty($item['id']) && $hasLifecycleActions) : ?>
-        <div>
+        <div class="admin-lifecycle-actions" aria-label="<?= esc('Post lifecycle actions') ?>">
+            <p class="admin-lifecycle-actions__label"><?= esc('Publication') ?></p>
             <?php if ($canPublish) : ?>
                 <form
+                    class="admin-actions__form"
                     method="post"
                     action="<?= esc(site_url('admin/posts/' . (int) $item['id'] . '/publish')) ?>"
-                    style="display:inline"
                 >
                     <?= csrf_field() ?>
                     <input type="hidden" name="lock_version" value="<?= esc((string) $lockVersion, 'attr') ?>">
-                    <button type="submit"><?= esc('Publish') ?></button>
+                    <button class="admin-btn admin-btn--primary admin-btn--small" type="submit"><?= esc('Publish') ?></button>
                 </form>
             <?php endif; ?>
             <?php if ($canUnpublish) : ?>
                 <form
+                    class="admin-actions__form"
                     method="post"
                     action="<?= esc(site_url('admin/posts/' . (int) $item['id'] . '/unpublish')) ?>"
-                    style="display:inline"
                 >
                     <?= csrf_field() ?>
                     <input type="hidden" name="lock_version" value="<?= esc((string) $lockVersion, 'attr') ?>">
-                    <button type="submit"><?= esc('Unpublish') ?></button>
+                    <button class="admin-btn admin-btn--secondary admin-btn--small" type="submit"><?= esc('Unpublish') ?></button>
                 </form>
             <?php endif; ?>
             <?php if ($canArchive) : ?>
                 <form
-                    method="post"
+                    class="admin-actions__form"
                     action="<?= esc(site_url('admin/posts/' . (int) $item['id'] . '/archive')) ?>"
-                    style="display:inline"
+                    method="post"
                 >
                     <?= csrf_field() ?>
                     <input type="hidden" name="lock_version" value="<?= esc((string) $lockVersion, 'attr') ?>">
-                    <button type="submit"><?= esc('Archive') ?></button>
+                    <button class="admin-btn admin-btn--secondary admin-btn--small" type="submit"><?= esc('Archive') ?></button>
                 </form>
             <?php endif; ?>
             <?php if ($canSubmitForReview) : ?>
                 <form
+                    class="admin-actions__form"
                     method="post"
                     action="<?= esc(site_url('admin/posts/' . (int) $item['id'] . '/submit-review')) ?>"
-                    style="display:inline"
                 >
                     <?= csrf_field() ?>
                     <input type="hidden" name="lock_version" value="<?= esc((string) $lockVersion, 'attr') ?>">
-                    <button type="submit"><?= esc('Submit for Review') ?></button>
+                    <button class="admin-btn admin-btn--secondary admin-btn--small" type="submit"><?= esc('Submit for Review') ?></button>
                 </form>
             <?php endif; ?>
             <?php if ($canReviewPublish) : ?>
                 <form
+                    class="admin-actions__form"
                     method="post"
                     action="<?= esc(site_url('admin/posts/' . (int) $item['id'] . '/review-publish')) ?>"
-                    style="display:inline"
                 >
                     <?= csrf_field() ?>
                     <input type="hidden" name="lock_version" value="<?= esc((string) $lockVersion, 'attr') ?>">
-                    <button type="submit"><?= esc('Publish') ?></button>
+                    <button class="admin-btn admin-btn--primary admin-btn--small" type="submit"><?= esc('Publish') ?></button>
                 </form>
             <?php endif; ?>
             <?php if ($canReturnForRevision) : ?>
                 <form
+                    class="admin-actions__form"
                     method="post"
                     action="<?= esc(site_url('admin/posts/' . (int) $item['id'] . '/return-revision')) ?>"
-                    style="display:inline"
                 >
                     <?= csrf_field() ?>
                     <input type="hidden" name="lock_version" value="<?= esc((string) $lockVersion, 'attr') ?>">
-                    <button type="submit"><?= esc('Return for Revision') ?></button>
+                    <button class="admin-btn admin-btn--secondary admin-btn--small" type="submit"><?= esc('Return for Revision') ?></button>
                 </form>
             <?php endif; ?>
         </div>
@@ -161,153 +170,175 @@ $hasLifecycleActions  = $canPublish || $canUnpublish || $canArchive || $canSubmi
         ]) ?>
     <?php endif; ?>
 
-    <form method="post" action="<?= esc($formAction) ?>" id="post-edit-form">
+    <form method="post" action="<?= esc($formAction) ?>" id="post-edit-form" class="admin-form">
         <?= csrf_field() ?>
         <?php if ($mode === 'edit') : ?>
             <input type="hidden" name="lock_version" value="<?= esc((string) $lockVersion, 'attr') ?>">
         <?php endif; ?>
 
         <?php if ($mode === 'edit' && ! empty($item['id'])) : ?>
-            <div id="autosave-status" aria-live="polite"></div>
-            <p>
+            <div class="admin-autosave">
+                <p class="admin-autosave__label"><?= esc('Draft autosave') ?></p>
+                <div id="autosave-status" aria-live="polite"></div>
                 <button
+                    class="admin-btn admin-btn--secondary admin-btn--small"
                     type="button"
-                    hx-post="<?= esc(site_url('admin/posts/' . (int) $item['id'] . '/autosave'), 'attr') ?>"
+                    hx-post="<?= esc(site_url('admin/posts/' . (int) $item['id'] . '/autosave')) ?>"
                     hx-include="#post-edit-form"
                     hx-target="#autosave-status"
                     hx-swap="innerHTML"
                 ><?= esc('Save draft') ?></button>
-            </p>
+            </div>
         <?php endif; ?>
 
-        <div>
-            <label for="title"><?= esc('Title') ?></label>
-            <input
-                type="text"
-                id="title"
-                name="title"
-                required
-                maxlength="200"
-                value="<?= esc((string) ($item['title'] ?? ''), 'attr') ?>"
-            >
-            <?php if (isset($errors['title'])) : ?>
-                <p><?= esc($errors['title']) ?></p>
-            <?php endif; ?>
-        </div>
+        <section class="admin-form-section" aria-labelledby="post-basics-title">
+            <h2 id="post-basics-title" class="admin-form-section__title"><?= esc('Basics') ?></h2>
+            <div class="admin-form-section__grid admin-form-section__grid--two">
+                <div class="admin-form-field">
+                    <label for="title"><?= esc('Title') ?> <span class="admin-required" aria-hidden="true">*</span></label>
+                    <input
+                        type="text"
+                        id="title"
+                        name="title"
+                        required
+                        maxlength="200"
+                        value="<?= esc((string) ($item['title'] ?? '')) ?>"
+                    >
+                    <?php if (isset($errors['title'])) : ?>
+                        <p class="admin-field-error"><?= esc($errors['title']) ?></p>
+                    <?php endif; ?>
+                </div>
 
-        <div>
-            <label for="slug"><?= esc('Slug') ?></label>
-            <input
-                type="text"
-                id="slug"
-                name="slug"
-                required
-                maxlength="200"
-                value="<?= esc((string) ($item['slug'] ?? ''), 'attr') ?>"
-            >
-            <?php if (isset($errors['slug'])) : ?>
-                <p><?= esc($errors['slug']) ?></p>
-            <?php endif; ?>
-        </div>
+                <div class="admin-form-field">
+                    <label for="slug"><?= esc('Slug') ?> <span class="admin-required" aria-hidden="true">*</span></label>
+                    <input
+                        type="text"
+                        id="slug"
+                        name="slug"
+                        required
+                        maxlength="200"
+                        value="<?= esc((string) ($item['slug'] ?? '')) ?>"
+                    >
+                    <?php if (isset($errors['slug'])) : ?>
+                        <p class="admin-field-error"><?= esc($errors['slug']) ?></p>
+                    <?php endif; ?>
+                </div>
 
-        <div>
-            <label for="locale"><?= esc('Locale') ?></label>
-            <select id="locale" name="locale" required>
-                <?php foreach ($locales as $locale) : ?>
-                    <option
-                        value="<?= esc($locale, 'attr') ?>"
-                        <?= ($item['locale'] ?? '') === $locale ? 'selected' : '' ?>
-                    ><?= esc($locale) ?></option>
-                <?php endforeach; ?>
-            </select>
-            <?php if (isset($errors['locale'])) : ?>
-                <p><?= esc($errors['locale']) ?></p>
-            <?php endif; ?>
-        </div>
+                <div class="admin-form-field">
+                    <label for="locale"><?= esc('Locale') ?> <span class="admin-required" aria-hidden="true">*</span></label>
+                    <select id="locale" name="locale" required>
+                        <?php foreach ($locales as $locale) : ?>
+                            <option
+                                value="<?= esc($locale, 'attr') ?>"
+                                <?= ($item['locale'] ?? '') === $locale ? 'selected' : '' ?>
+                            ><?= esc($locale) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                    <?php if (isset($errors['locale'])) : ?>
+                        <p class="admin-field-error"><?= esc($errors['locale']) ?></p>
+                    <?php endif; ?>
+                </div>
 
-        <div>
-            <label for="manual_author"><?= esc('Author (public)') ?></label>
-            <input
-                type="text"
-                id="manual_author"
-                name="manual_author"
-                required
-                maxlength="200"
-                value="<?= esc((string) ($item['manual_author'] ?? ''), 'attr') ?>"
-            >
-            <?php if (isset($errors['manual_author'])) : ?>
-                <p><?= esc($errors['manual_author']) ?></p>
-            <?php endif; ?>
-        </div>
-
-        <div>
-            <label for="category_ids"><?= esc('Categories') ?></label>
-            <select id="category_ids" name="category_ids[]" multiple size="5">
-                <?php foreach ($categories as $category) : ?>
-                    <?php $selected = in_array($category->id, $selectedCategories, true); ?>
-                    <option
-                        value="<?= esc((string) $category->id, 'attr') ?>"
-                        <?= $selected ? 'selected' : '' ?>
-                    ><?= esc($category->name) ?></option>
-                <?php endforeach; ?>
-            </select>
-            <?php if ($categories === []) : ?>
-                <p><?= esc('No active categories yet.') ?></p>
-            <?php endif; ?>
-            <?php if (isset($errors['categories'])) : ?>
-                <p><?= esc($errors['categories']) ?></p>
-            <?php endif; ?>
-        </div>
-
-        <div>
-            <label for="tag_ids"><?= esc('Tags (optional)') ?></label>
-            <select id="tag_ids" name="tag_ids[]" multiple size="5">
-                <?php foreach ($tags as $tag) : ?>
-                    <?php $selected = in_array($tag->id, $selectedTags, true); ?>
-                    <option
-                        value="<?= esc((string) $tag->id, 'attr') ?>"
-                        <?= $selected ? 'selected' : '' ?>
-                    ><?= esc($tag->name) ?></option>
-                <?php endforeach; ?>
-            </select>
-            <?php if (isset($errors['tags'])) : ?>
-                <p><?= esc($errors['tags']) ?></p>
-            <?php endif; ?>
-        </div>
-
-        <fieldset>
-            <legend><?= esc('SEO') ?></legend>
-            <div>
-                <label for="meta_title"><?= esc('Meta title') ?></label>
-                <input type="text" id="meta_title" name="meta_title" maxlength="255"
-                    value="<?= esc((string) ($item['meta_title'] ?? ''), 'attr') ?>">
+                <div class="admin-form-field">
+                    <label for="manual_author"><?= esc('Author (public)') ?> <span class="admin-required" aria-hidden="true">*</span></label>
+                    <input
+                        type="text"
+                        id="manual_author"
+                        name="manual_author"
+                        required
+                        maxlength="200"
+                        value="<?= esc((string) ($item['manual_author'] ?? '')) ?>"
+                    >
+                    <?php if (isset($errors['manual_author'])) : ?>
+                        <p class="admin-field-error"><?= esc($errors['manual_author']) ?></p>
+                    <?php endif; ?>
+                </div>
             </div>
-            <div>
-                <label for="meta_description"><?= esc('Meta description') ?></label>
-                <textarea id="meta_description" name="meta_description" maxlength="500" rows="2"><?= esc((string) ($item['meta_description'] ?? '')) ?></textarea>
+        </section>
+
+        <section class="admin-form-section" aria-labelledby="post-taxonomy-title">
+            <h2 id="post-taxonomy-title" class="admin-form-section__title"><?= esc('Categories & Tags') ?></h2>
+            <div class="admin-form-section__grid admin-form-section__grid--two">
+                <div class="admin-form-field">
+                    <label for="category_ids"><?= esc('Categories') ?></label>
+                    <select id="category_ids" name="category_ids[]" multiple size="5">
+                        <?php foreach ($categories as $category) : ?>
+                            <?php $selected = in_array($category->id, $selectedCategories, true); ?>
+                            <option
+                                value="<?= esc((string) $category->id, 'attr') ?>"
+                                <?= $selected ? 'selected' : '' ?>
+                            ><?= esc($category->name) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                    <?php if ($categories === []) : ?>
+                        <p class="admin-form-hint"><?= esc('No active categories yet.') ?></p>
+                    <?php endif; ?>
+                    <?php if (isset($errors['categories'])) : ?>
+                        <p class="admin-field-error"><?= esc($errors['categories']) ?></p>
+                    <?php endif; ?>
+                </div>
+
+                <div class="admin-form-field">
+                    <label for="tag_ids"><?= esc('Tags (optional)') ?></label>
+                    <select id="tag_ids" name="tag_ids[]" multiple size="5">
+                        <?php foreach ($tags as $tag) : ?>
+                            <?php $selected = in_array($tag->id, $selectedTags, true); ?>
+                            <option
+                                value="<?= esc((string) $tag->id, 'attr') ?>"
+                                <?= $selected ? 'selected' : '' ?>
+                            ><?= esc($tag->name) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                    <?php if (isset($errors['tags'])) : ?>
+                        <p class="admin-field-error"><?= esc($errors['tags']) ?></p>
+                    <?php endif; ?>
+                </div>
             </div>
-            <div>
-                <label for="canonical_url"><?= esc('Canonical URL override') ?></label>
-                <input type="text" id="canonical_url" name="canonical_url" maxlength="500"
-                    value="<?= esc((string) ($item['canonical_url'] ?? ''), 'attr') ?>">
-            </div>
-            <div>
-                <label for="og_image_id"><?= esc('OG image media ID') ?></label>
-                <input type="number" id="og_image_id" name="og_image_id" min="1"
-                    value="<?= esc((string) ($item['og_image_id'] ?? ''), 'attr') ?>">
-            </div>
-        </fieldset>
+        </section>
+
+        <section class="admin-form-section">
+            <fieldset class="admin-form-fieldset">
+                <legend>SEO</legend>
+                <div class="admin-form-section__grid">
+                <div class="admin-form-field">
+                    <label for="meta_title"><?= esc('Meta title') ?></label>
+                    <input type="text" id="meta_title" name="meta_title" maxlength="255"
+                        value="<?= esc((string) ($item['meta_title'] ?? ''), 'attr') ?>">
+                </div>
+                <div class="admin-form-field">
+                    <label for="meta_description"><?= esc('Meta description') ?></label>
+                    <textarea id="meta_description" name="meta_description" maxlength="500" rows="2"><?= esc((string) ($item['meta_description'] ?? '')) ?></textarea>
+                </div>
+                <div class="admin-form-field">
+                    <label for="canonical_url"><?= esc('Canonical URL override') ?></label>
+                    <input type="text" id="canonical_url" name="canonical_url" maxlength="500"
+                        value="<?= esc((string) ($item['canonical_url'] ?? ''), 'attr') ?>">
+                </div>
+                <div class="admin-form-field">
+                    <label for="og_image_id"><?= esc('OG image media ID') ?></label>
+                    <input type="number" id="og_image_id" name="og_image_id" min="1"
+                        value="<?= esc((string) ($item['og_image_id'] ?? '')) ?>">
+                </div>
+                </div>
+            </fieldset>
+        </section>
 
         <?php if ($contentSchema !== []) : ?>
-            <?= view('admin/pages/_partials/content_fields', [
-                'contentSchema'  => $contentSchema,
-                'contentPayload' => $contentPayload,
-                'errors'         => $errors,
-            ]) ?>
+            <section class="admin-form-section">
+                <fieldset class="admin-form-fieldset">
+                    <legend>Content</legend>
+                    <?= view('admin/pages/_partials/content_fields', [
+                        'contentSchema'  => $contentSchema,
+                        'contentPayload' => $contentPayload,
+                        'errors'         => $errors,
+                    ]) ?>
+                </fieldset>
+            </section>
         <?php endif; ?>
 
-        <div>
-            <button type="submit"><?= esc($mode === 'edit' ? 'Update post' : 'Create post') ?></button>
+        <div class="admin-form-actions">
+            <button class="admin-btn admin-btn--primary" type="submit"><?= esc($mode === 'edit' ? 'Update post' : 'Create post') ?></button>
+            <a class="admin-btn admin-btn--secondary" href="<?= esc(site_url('admin/posts')) ?>"><?= esc('Cancel') ?></a>
         </div>
     </form>
 <?= $this->endSection() ?>

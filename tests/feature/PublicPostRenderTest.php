@@ -172,7 +172,7 @@ final class PublicPostRenderTest extends CIUnitTestCase
         $path = Services::themeService(getShared: false)->publicViewPathForTemplate('custom-post');
         $this->assertFileExists($path);
         $name = Services::themeService(getShared: false)->publicViewNameForTemplate('custom-post');
-        $this->assertSame('themes/default/templates/custom-post', $name);
+        $this->assertSame('themes/2026/templates/custom-post', $name);
     }
 
     /**

@@ -73,7 +73,7 @@ $attr = static fn (string $value): string => htmlspecialchars($value, ENT_QUOTES
                 </legend>
                 <p><?= esc(sprintf('Items: %d–%d (empty rows are ignored).', $minItems, $maxItems)) ?></p>
                 <?php if ($fieldError !== null) : ?>
-                    <p><?= esc($fieldError) ?></p>
+                    <p class="admin-field-error"><?= esc($fieldError) ?></p>
                 <?php endif; ?>
 
                 <?php for ($i = 0; $i < $maxItems; $i++) : ?>
@@ -112,7 +112,7 @@ $attr = static fn (string $value): string => htmlspecialchars($value, ENT_QUOTES
                             };
                             $childValueString = is_scalar($childValue) ? (string) $childValue : '';
                             ?>
-                            <div>
+                            <div class="admin-form-field">
                                 <label for="<?= $attr($childId) ?>">
                                     <?= esc($childLabel) ?>
                                     <?php if ($childRequired) : ?>
@@ -153,7 +153,7 @@ $attr = static fn (string $value): string => htmlspecialchars($value, ENT_QUOTES
                                     >
                                 <?php endif; ?>
                                 <?php if ($childError !== null) : ?>
-                                    <p><?= esc($childError) ?></p>
+                                    <p class="admin-field-error"><?= esc($childError) ?></p>
                                 <?php endif; ?>
                             </div>
                         <?php endforeach; ?>
@@ -161,7 +161,7 @@ $attr = static fn (string $value): string => htmlspecialchars($value, ENT_QUOTES
                 <?php endfor; ?>
             </fieldset>
         <?php else : ?>
-            <div data-content-field="<?= $attr($fieldKey) ?>" data-content-type="<?= $attr($type) ?>">
+            <div class="admin-form-field" data-content-field="<?= $attr($fieldKey) ?>" data-content-type="<?= $attr($type) ?>">
                 <label for="<?= $attr($fieldId) ?>">
                     <?= esc($label) ?>
                     <?php if ($required) : ?>
@@ -220,7 +220,7 @@ $attr = static fn (string $value): string => htmlspecialchars($value, ENT_QUOTES
                 <?php endif; ?>
 
                 <?php if ($fieldError !== null) : ?>
-                    <p><?= esc($fieldError) ?></p>
+                    <p class="admin-field-error"><?= esc($fieldError) ?></p>
                 <?php endif; ?>
             </div>
         <?php endif; ?>

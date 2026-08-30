@@ -9,7 +9,7 @@ After a successful [installation](INSTALLATION.md):
 | Admin users | Exactly **one** Admin (`admin` group) |
 | Pages | **None** |
 | Posts | **None** |
-| Demo content | **None** |
+| Demo content | **None** (optional: `php spark cms:demo`) |
 | Hard-coded password | **None** — credentials come from installer/env only |
 
 ## Public site
@@ -18,7 +18,17 @@ After a successful [installation](INSTALLATION.md):
 https://YOUR-DOMAIN/
 ```
 
-`GET /` renders the default SMITE CMS landing page (product-neutral: “Website is ready.”). It does not require you to create a Page first. Replace it later by configuring themes and publishing real Pages/Posts.
+`GET /` renders the SMITE 2026 starter landing page when that theme is active. It does not require you to create a Page first. Publish Pages and Posts from the Control Panel to build out the site.
+
+## Optional starter content
+
+After installation you may load generic starter Pages and a sample Post:
+
+```bash
+php spark cms:demo
+```
+
+This command is **optional**, idempotent, and separate from `cms:install`. It creates published content at `/about`, `/contact`, `/berita` (News landing Page), and `/news/welcome` (sample Post). The slug `news` is reserved for the Post URL prefix in V1 (`/news/{post-slug}`), so the News landing Page uses `/berita` while the navigation label remains **News**.
 
 ## Control Panel
 
@@ -26,7 +36,7 @@ https://YOUR-DOMAIN/
 https://YOUR-DOMAIN/cp
 ```
 
-Authenticated administration lives under `/admin/*` after login.
+Sign in at `/cp`. After authentication, the Control Panel dashboard is at `/admin`. See [ADMIN-CONTROL-PANEL.md](ADMIN-CONTROL-PANEL.md) for an overview of all administration areas (Pages, Posts, Media, Menus, Settings, Themes, Audit, and others).
 
 ## First login
 

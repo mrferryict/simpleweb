@@ -18,7 +18,7 @@ class Theme extends BaseConfig
     /**
      * Bootstrap / fallback ACTIVE theme id when Settings has no `Theme.activeThemeId`.
      */
-    public string $activeThemeId = 'default';
+    public string $activeThemeId = '2026';
 
     /**
      * Developer-controlled ENABLED Theme registry (ADR-022).
@@ -30,5 +30,6 @@ class Theme extends BaseConfig
     public array $enabledThemeIds = [
         'default',
         'classic',
+        '2026',
     ];
 }

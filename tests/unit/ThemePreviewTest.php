@@ -297,7 +297,7 @@ final class ThemePreviewTest extends CIUnitTestCase
     {
         $viewName = $this->themes->publicViewNameForThemeTemplate('classic', 'custom-page');
         $this->assertSame('themes/classic/templates/custom-page', $viewName);
-        $this->assertSame('default', $this->themes->activeThemeId());
+        $this->assertSame('2026', $this->themes->activeThemeId());
     }
 
     public function testThemesAdminListsPreviewLinksWhenPagesExist(): void

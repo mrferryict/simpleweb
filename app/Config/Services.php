@@ -33,6 +33,7 @@ use App\Services\PageService;
 use App\Services\PostService;
 use App\Services\Revision\RevisionService;
 use App\Services\ScheduledContentService;
+use App\Services\Demo\DemoContentService;
 use App\Services\Install\InstallService;
 use App\Services\Security\AuthThrottleService;
 use App\Services\Security\PiiCipherService;
@@ -233,6 +234,26 @@ class Services extends BaseService
             db_connect(),
             SettingsServices::settings(getShared: true),
             static::userEmailService(getShared: true),
+        );
+    }
+
+    /**
+     * Optional starter content for `cms:demo` (post-V1 / TH-004).
+     */
+    public static function demoContentService(bool $getShared = true): DemoContentService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('demoContentService');
+        }
+
+        return new DemoContentService(
+            static::pageService(getShared: true),
+            static::postService(getShared: true),
+            model(\App\Models\PageTranslationModel::class),
+            model(\App\Models\PostTranslationModel::class),
+            static::settingService(getShared: true),
+            static::installService(getShared: false),
+            db_connect(),
         );
     }
 

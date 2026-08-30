@@ -266,7 +266,7 @@ final class PublicPageRenderTest extends CIUnitTestCase
         $theme = Services::themeService(getShared: false);
         $path  = $theme->publicViewPathForTemplate('custom-page');
         $this->assertFileExists($path);
-        $this->assertSame('themes/default/templates/custom-page', $theme->publicViewNameForTemplate('custom-page'));
+        $this->assertSame('themes/2026/templates/custom-page', $theme->publicViewNameForTemplate('custom-page'));
     }
 
     public function testPublishedPageRendersActiveImageAndDocument(): void

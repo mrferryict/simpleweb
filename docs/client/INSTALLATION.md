@@ -179,6 +179,16 @@ The installer:
 
 Running `php spark cms:install` again on an already-installed system prints an informational message and makes **no** destructive changes (no second Admin, no credential reset).
 
+## 14b. Optional starter content
+
+After a successful install, you may populate generic demo Pages and a sample Post:
+
+```bash
+php spark cms:demo
+```
+
+This is **optional** and idempotent. It does not modify `cms:install` behavior, create a second Admin, or overwrite existing content that already uses the same slugs (`about`, `contact`, `berita`, `welcome`). The slug `news` is reserved for Post URLs in V1 (`/news/{post-slug}`), so the News landing Page is created at `/berita`. See [FIRST-RUN.md](FIRST-RUN.md).
+
 ## 15. Configure the web server
 
 Point the virtual host **document root** to:
@@ -215,6 +225,8 @@ A fresh install shows the default SMITE CMS landing page (“Website is ready.�
 https://your-domain.example/cp
 ```
 
+After login, the dashboard is at `/admin`. See [ADMIN-CONTROL-PANEL.md](ADMIN-CONTROL-PANEL.md) for a concise map of administration areas.
+
 ## 19. Log in
 
 Sign in with the administrator-provided credentials from step 11. Throttle must be configured (step 12) or login is denied.
@@ -248,6 +260,7 @@ Use [PRODUCTION-CHECKLIST.md](PRODUCTION-CHECKLIST.md) before go-live.
 | Command | Purpose |
 |---|---|
 | `php spark cms:install` | Install / upgrade schema bootstrap (idempotent) |
+| `php spark cms:demo` | Optional starter Pages/Posts (idempotent; separate from install) |
 | `php spark cms:scheduled-content` | Process due publish/unpublish actions |
 | `php spark migrate:status` | Show migration status |
 | `php spark migrate` | Run pending migrations (updates only — after backup) |

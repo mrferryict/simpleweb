@@ -159,7 +159,7 @@ final class PageContentFormViewTest extends CIUnitTestCase
             ],
         ], []);
         $this->assertStringContainsString('Edit page', $full);
-        $this->assertStringContainsString('Status: DRAFT', $full);
+        $this->assertStringContainsString('status-badge--draft', $full);
         $this->assertStringContainsString('value="Welcome &amp; Friends"', $full);
     }
 

@@ -32,6 +32,8 @@ After install:
 
 First Admin credentials are **never hard-coded**. Provide them via `.env` or CLI flags at `cms:install` time. See the installation guide.
 
+Optional starter content (generic demo Pages and a sample Post) is available after install via `php spark cms:demo` — see [First run](docs/client/FIRST-RUN.md).
+
 ## Updating an existing installation
 
 Follow **[Client Update](docs/client/UPDATE.md)**.

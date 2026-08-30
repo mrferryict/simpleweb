@@ -48,10 +48,10 @@ final class ThemeServiceTest extends CIUnitTestCase
 
     public function testThemeIdentityIsCorrect(): void
     {
-        $this->assertSame('default', $this->themeService->activeThemeId());
+        $this->assertSame('2026', $this->themeService->activeThemeId());
         $manifest = $this->themeService->loadActiveManifest();
-        $this->assertSame('default', $manifest['id']);
-        $this->assertSame('Default', $manifest['name']);
+        $this->assertSame('2026', $manifest['id']);
+        $this->assertSame('SMITE 2026', $manifest['name']);
         $this->assertSame('SMITE CMS', $manifest['author']);
     }
 
@@ -140,7 +140,7 @@ final class ThemeServiceTest extends CIUnitTestCase
     public function testManifestPathIsOutsidePublicWebRoot(): void
     {
         $path = $this->themeService->activeManifestPath();
-        $this->assertStringContainsString('Views/themes/default/ThemeManifest.php', $path);
+        $this->assertStringContainsString('Views/themes/2026/ThemeManifest.php', $path);
         $this->assertStringNotContainsString('/public/', $path);
         $this->assertFileExists($path);
     }
@@ -188,17 +188,18 @@ final class ThemeServiceTest extends CIUnitTestCase
     public function testActiveThemeConfigIsUsed(): void
     {
         $config = new ThemeConfig();
-        $this->assertSame('default', $config->activeThemeId);
+        $this->assertSame('2026', $config->activeThemeId);
         $this->assertContains('default', $config->enabledThemeIds);
+        $this->assertContains('2026', $config->enabledThemeIds);
     }
 
     public function testPublicCustomPostViewPathResolves(): void
     {
         $path = $this->themeService->publicViewPathForTemplate('custom-post');
-        $this->assertStringContainsString('Views/themes/default/templates/custom-post.php', $path);
+        $this->assertStringContainsString('Views/themes/2026/templates/custom-post.php', $path);
         $this->assertFileExists($path);
         $this->assertSame(
-            'themes/default/templates/custom-post',
+            'themes/2026/templates/custom-post',
             $this->themeService->publicViewNameForTemplate('custom-post'),
         );
     }

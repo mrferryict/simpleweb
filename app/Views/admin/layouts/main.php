@@ -1,11 +1,15 @@
 <?php
+
+declare(strict_types=1);
+
 /**
- * Shared Control Panel layout (Phase 1 + Phase 3 Tasks 3.5–3.6).
+ * Shared Control Panel layout (Phase 1 + Phase 3 Tasks 3.5–3.6 / TH-006 shell).
  *
  * Presentation chrome only — authentication/authorization remain on filters.
  * Child views extend this layout and fill the `content` section.
  *
- * Optional section: `title` (plain text; escaped here).
+ * Optional sections: `title` (plain text; escaped here).
+ * Optional view data: `activeNav` (navigation highlight key).
  *
  * Frontend assets: pinned vendored static files under /assets/admin/ (ADR-010).
  * CSRF for HTMX: meta token + htmx-csrf.js (DOC-03 §11 / .cursorrules §4.5).
@@ -16,6 +20,7 @@ $pageTitle = trim($this->renderSection('title'));
 if ($pageTitle === '') {
     $pageTitle = 'SMITE CMS Control Panel';
 }
+$activeNav = isset($activeNav) && is_string($activeNav) ? $activeNav : '';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -26,41 +31,48 @@ if ($pageTitle === '') {
     <meta name="csrf-token" content="<?= esc(csrf_hash()) ?>">
     <meta name="csrf-header" content="<?= esc(config('Security')->headerName) ?>">
     <meta name="csrf-param" content="<?= esc(csrf_token()) ?>">
+    <link rel="stylesheet" href="<?= esc(base_url('assets/admin/css/admin-shell.css')) ?>">
+    <link rel="stylesheet" href="<?= esc(base_url('assets/admin/css/admin-content.css')) ?>">
     <link rel="stylesheet" href="<?= esc(base_url('assets/admin/css/quill.snow.css')) ?>">
     <link rel="stylesheet" href="<?= esc(base_url('assets/admin/css/quill-editor.css')) ?>">
 </head>
-<body>
-    <header>
-        <p><?= esc('SMITE CMS Control Panel') ?></p>
-        <nav aria-label="<?= esc('Control Panel account') ?>">
-            <?php if ($username !== null && $username !== '') : ?>
-                <span><?= esc('Signed in as ' . $username) ?></span>
-            <?php endif; ?>
-            <a href="<?= esc(site_url('logout')) ?>"><?= esc('Log out') ?></a>
-        </nav>
-    </header>
+<body class="admin-shell">
+    <a class="admin-skip-link" href="#main"><?= esc('Skip to main content') ?></a>
 
-    <nav aria-label="<?= esc('Control Panel primary') ?>">
-        <ul>
-            <li><a href="<?= esc(site_url('admin/pages')) ?>"><?= esc('Pages') ?></a></li>
-            <li><a href="<?= esc(site_url('admin/posts')) ?>"><?= esc('Posts') ?></a></li>
-            <li><a href="<?= esc(site_url('admin/categories')) ?>"><?= esc('Categories') ?></a></li>
-            <li><a href="<?= esc(site_url('admin/tags')) ?>"><?= esc('Tags') ?></a></li>
-            <li><a href="<?= esc(site_url('admin/media')) ?>"><?= esc('Media') ?></a></li>
-            <li><a href="<?= esc(site_url('admin/menus')) ?>"><?= esc('Menus') ?></a></li>
-            <li><a href="<?= esc(site_url('admin/settings')) ?>"><?= esc('Settings') ?></a></li>
-            <?php if (auth()->user()?->can('theme.activate')) : ?>
-                <li><a href="<?= esc(site_url('admin/themes')) ?>"><?= esc('Themes') ?></a></li>
-            <?php endif; ?>
-            <?php if (auth()->user()?->can('audit.view')) : ?>
-                <li><a href="<?= esc(site_url('admin/audit')) ?>"><?= esc('Audit') ?></a></li>
-            <?php endif; ?>
-        </ul>
-    </nav>
+    <div class="admin-app">
+        <header class="admin-header">
+            <div class="admin-header__brand-group">
+                <p class="admin-header__brand"><?= esc('SMITE CMS') ?></p>
+                <p class="admin-header__subtitle"><?= esc('Control Panel') ?></p>
+            </div>
 
-    <main>
-        <?= $this->renderSection('content') ?>
-    </main>
+            <details class="admin-nav-toggle">
+                <summary class="admin-nav-toggle__summary"><?= esc('Menu') ?></summary>
+                <div class="admin-nav--mobile">
+                    <?= view('admin/_partials/navigation', ['activeNav' => $activeNav]) ?>
+                </div>
+            </details>
+
+            <div class="admin-header__account" aria-label="<?= esc('Control Panel account') ?>">
+                <?php if ($username !== null && $username !== '') : ?>
+                    <span class="admin-header__user"><?= esc('Signed in as ' . $username) ?></span>
+                <?php endif; ?>
+                <a class="admin-header__logout" href="<?= esc(site_url('logout')) ?>"><?= esc('Log out') ?></a>
+            </div>
+        </header>
+
+        <div class="admin-layout">
+            <aside class="admin-sidebar admin-sidebar--desktop" aria-label="<?= esc('Control Panel navigation') ?>">
+                <?= view('admin/_partials/navigation', ['activeNav' => $activeNav]) ?>
+            </aside>
+
+            <main id="main" class="admin-main">
+                <div class="admin-main__inner">
+                    <?= $this->renderSection('content') ?>
+                </div>
+            </main>
+        </div>
+    </div>
 
     <script src="<?= esc(base_url('assets/admin/js/htmx.min.js')) ?>"></script>
     <script src="<?= esc(base_url('assets/admin/js/htmx-csrf.js')) ?>"></script>

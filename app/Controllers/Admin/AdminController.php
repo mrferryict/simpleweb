@@ -21,7 +21,8 @@ class AdminController extends BaseController
         $username = auth()->user()?->username;
 
         return view('admin/dashboard/index', [
-            'username' => is_string($username) ? $username : null,
+            'username'  => is_string($username) ? $username : null,
+            'activeNav' => 'dashboard',
         ]);
     }
 }
