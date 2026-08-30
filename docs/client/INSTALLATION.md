@@ -2,33 +2,60 @@
 
 Use this guide for a **new** installation. For an existing site, use [UPDATE.md](UPDATE.md) instead.
 
+## Overview
+
+```text
+Prepare server
+  → clone release
+  → composer install --no-dev
+  → create .env from .env.example
+  → configure database and security keys
+  → configure initial Admin credentials
+  → php spark cms:install
+  → configure web server + HTTPS + cron
+  → verify / and /cp
+  → first login and password change
+```
+
 ## 1. Prepare the server
 
-- PHP **8.5+** with extensions: `intl`, `mbstring`, `gd`, `sodium`, and MariaDB/MySQL client extensions
-- MariaDB
-- Composer
-- Git
+- PHP **8.5+**
+- Required PHP extensions: `intl`, `mbstring`, `gd`, `sodium`, and MariaDB/MySQL client extensions
+- **MariaDB**
+- **Composer**
+- **Git**
 - Cron capability
-- SMTP capability
-- HTTPS
+- SMTP capability (recommended for password recovery)
+- HTTPS (required for production)
 
 SMITE CMS V1 does **not** require Docker, Redis, or a queue worker.
 
-## 2. Create the database
+## 2. Prepare domain and DNS
+
+Point your domain at the server before setting `app.baseURL` in `.env`.
+
+## 3. Create the database
 
 Create an empty MariaDB database and a dedicated database user with rights on that database only.
 
-## 3. Clone the release
+## 4. Clone the repository
 
 ```bash
 cd /var/www
-git clone --branch v1.0.0 --depth 1 <YOUR_GITHUB_REPO_URL> smite-cms
+git clone <YOUR_GITHUB_REPO_URL> smite-cms
 cd smite-cms
 ```
 
-Prefer the `v1.0.0` tag (or a later documented release tag) over an arbitrary branch tip.
+## 5. Check out the desired release
 
-## 4. Install PHP dependencies (production)
+Prefer a documented release tag over an arbitrary branch tip:
+
+```bash
+git fetch --tags
+git checkout v1.0.0
+```
+
+## 6. Install PHP dependencies (production)
 
 ```bash
 composer install --no-dev --prefer-dist --optimize-autoloader
@@ -36,67 +63,99 @@ composer install --no-dev --prefer-dist --optimize-autoloader
 
 Do **not** run `composer update` on production.
 
-## 5. Create `.env`
+## 7. Create `.env`
 
 ```bash
 cp .env.example .env
 ```
 
-Configure at least:
+Edit `.env` on the server. See [CONFIGURATION.md](CONFIGURATION.md) for section-by-section guidance.
 
-- `CI_ENVIRONMENT = production`
-- `app.baseURL` (HTTPS URL ending with `/`)
-- `app.forceGlobalSecureRequests = true` (recommended in production)
-- Database connection settings
-- `skey` (long random recovery secret — never commit)
-- `EMAIL_ENCRYPTION_KEY` (64 hexadecimal characters)
-- `EMAIL_LOOKUP_HMAC_KEY` (64 hexadecimal characters, **different** from encryption key)
-- SMTP settings (`email.*`)
-- First Admin credentials (see next section)
+## 8. Configure the database
 
-Generate secrets with a secure random generator. Never reuse example values.
+Set at minimum:
 
-## 6. First Admin credentials
+```dotenv
+database.default.hostname = localhost
+database.default.database = 'your_database_name'
+database.default.username = 'your_database_user'
+database.default.password = 'your_database_password'
+```
 
-Credentials are supplied by the administrator. They are **not** stored in the repository.
+## 9. Configure application URL
+
+```dotenv
+CI_ENVIRONMENT = production
+app.baseURL = 'https://your-domain.example/'
+app.forceGlobalSecureRequests = true
+```
+
+Replace `your-domain.example` with your actual public HTTPS URL (trailing slash required).
+
+## 10. Generate security keys
+
+Before `cms:install`, set these in `.env`:
+
+| Variable | How to generate |
+|---|---|
+| `encryption.key` | `php spark key:generate` (or `php spark key:generate --show` to preview) |
+| `skey` | `php -r 'echo bin2hex(random_bytes(32)), PHP_EOL;'` |
+| `EMAIL_ENCRYPTION_KEY` | `php -r 'echo bin2hex(random_bytes(32)), PHP_EOL;'` |
+| `EMAIL_LOOKUP_HMAC_KEY` | Run the same command again — **must differ** from `EMAIL_ENCRYPTION_KEY` |
+
+Each PII key must be exactly **64 hexadecimal characters**. Never reuse one secret for both PII keys.
+
+## 11. Configure initial Admin credentials
+
+Credentials are supplied by the administrator. They are **not** stored in the repository. There is **no** hard-coded Admin password in the application.
 
 ### Option A — environment variables in `.env`
 
 ```dotenv
-cms.install.admin_username = YOUR_ADMIN_USERNAME
-cms.install.admin_email    = YOUR_ADMIN_EMAIL
-cms.install.admin_password = YOUR_ADMIN_PASSWORD
+cms.install.admin_username = 'admin'
+cms.install.admin_email = 'admin@example.com'
+cms.install.admin_password = 'YOUR_SECURE_PASSWORD'
 ```
 
-Then:
+Choose a unique password. Replace `admin@example.com` with a real address you control.
+
+### Option B — CLI flags
+
+```bash
+php spark cms:install \
+    --username admin \
+    --email admin@example.com \
+    --password 'YOUR_SECURE_PASSWORD'
+```
+
+Use **space-separated** flags (`--username value`), not `--username=value`.
+
+CLI flags override environment values when provided.
+
+## 12. Configure SMTP (if needed)
+
+SMTP is optional in `.env.example` but recommended for password recovery in production. See [CONFIGURATION.md](CONFIGURATION.md#smtp).
+
+## 13. Run the installer
 
 ```bash
 php spark cms:install
 ```
 
-### Option B — CLI flags
+The installer:
 
-```bash
-php spark cms:install --username YOUR_ADMIN_USERNAME --email YOUR_ADMIN_EMAIL --password YOUR_ADMIN_PASSWORD
-```
+- runs pending migrations
+- bootstraps default Site settings
+- creates exactly **one** Admin in the `admin` group
+- stores email with PII encryption
+- enables **force password reset** on first login
+- does **not** create demo Pages, Posts, or other content
 
-Use **space-separated** flags (`--username value`), not `--username=value`.
-
-**Example placeholders only (do not use literally in production):**
-
-```text
-username: admin
-email:    admin@example.com
-password: CHANGE_THIS_PASSWORD
-```
-
-The installer creates exactly **one** Admin, assigns the `admin` group, stores email with PII encryption, and enables **force password reset** on first login.
-
-## 7. Idempotency
+### Idempotency
 
 Running `php spark cms:install` again on an already-installed system prints an informational message and makes **no** destructive changes (no second Admin, no credential reset).
 
-## 8. Web server
+## 14. Configure the web server
 
 Point the virtual host **document root** to:
 
@@ -109,23 +168,60 @@ Enable HTTPS. Do not expose the repository root as the document root.
 Ensure these paths are writable by the application user:
 
 - `writable/cache`
-- `writable/uploads` (and subfolders as needed)
 - `writable/session`
 - `writable/logs`
+- `writable/uploads/images/`
+- `writable/uploads/documents/`
 
-## 9. Cron
+## 15. Enable HTTPS
+
+Production should serve the site over HTTPS. `app.forceGlobalSecureRequests = true` is recommended.
+
+## 16. Open the public site
+
+```text
+https://your-domain.example/
+```
+
+A fresh install shows the default SMITE CMS landing page (“Website is ready.”). No Page or Post must exist first.
+
+## 17. Open the Control Panel
+
+```text
+https://your-domain.example/cp
+```
+
+## 18. Log in
+
+Sign in with the administrator-provided credentials from step 11.
+
+## 19. Change the initial password
+
+When force password reset is active, change the password immediately through the application flow. Do not leave the install-time password in use.
+
+## 20. Configure the CMS
+
+Continue with [FIRST-RUN.md](FIRST-RUN.md) for site settings, theme, localization, content, and operational checks.
+
+## 21. Configure cron (scheduled content)
 
 ```bash
 * * * * * php /path/to/smite-cms/spark cms:scheduled-content
 ```
 
-## 10. Verify
+Adjust the path to match your deployment.
 
-1. Open `https://YOUR-DOMAIN/` — default landing page (“Website is ready.”)
-2. Open `https://YOUR-DOMAIN/cp` — login
-3. Sign in with the credentials you provided
-4. Change the Admin password when prompted
-5. Continue with [FIRST-RUN.md](FIRST-RUN.md)
+## 22. Configure auth throttle (operational)
+
+If your deployment requires rate limiting on login, password reset, or Admin recovery surfaces, set the `auth.throttle.*` keys in `.env`. Unconfigured surfaces fail closed. See [CONFIGURATION.md](CONFIGURATION.md#auth-throttling).
+
+## 23. Configure backup
+
+Schedule paired backups of the MariaDB database and `writable/uploads/` — see [BACKUP-RESTORE.md](BACKUP-RESTORE.md).
+
+## 24. Production smoke test
+
+Use [PRODUCTION-CHECKLIST.md](PRODUCTION-CHECKLIST.md) before go-live.
 
 ## Commands reference
 
@@ -134,4 +230,5 @@ Ensure these paths are writable by the application user:
 | `php spark cms:install` | Install / upgrade schema bootstrap (idempotent) |
 | `php spark cms:scheduled-content` | Process due publish/unpublish actions |
 | `php spark migrate:status` | Show migration status |
+| `php spark migrate` | Run pending migrations (updates only — after backup) |
 | `php spark list` | List Spark commands |

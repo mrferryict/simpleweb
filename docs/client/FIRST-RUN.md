@@ -2,13 +2,23 @@
 
 After a successful [installation](INSTALLATION.md):
 
+## What a fresh install contains
+
+| Item | State after `cms:install` |
+|---|---|
+| Admin users | Exactly **one** Admin (`admin` group) |
+| Pages | **None** |
+| Posts | **None** |
+| Demo content | **None** |
+| Hard-coded password | **None** — credentials come from installer/env only |
+
 ## Public site
 
 ```text
 https://YOUR-DOMAIN/
 ```
 
-A fresh install renders a **default landing page** (product-neutral). It does not require you to create a Page first. Replace it later by configuring themes and publishing real Pages/Posts.
+`GET /` renders the default SMITE CMS landing page (product-neutral: “Website is ready.”). It does not require you to create a Page first. Replace it later by configuring themes and publishing real Pages/Posts.
 
 ## Control Panel
 
@@ -20,15 +30,33 @@ Authenticated administration lives under `/admin/*` after login.
 
 ## First login
 
-1. Sign in with the **administrator-provided** credentials used at `cms:install`.
+1. Sign in at `/cp` with the **administrator-provided** credentials used at `cms:install`.
 2. When force password reset is active, change the password immediately through the application flow.
 3. Do not leave the install-time password in use.
 
 There is **no** hard-coded default password in the repository.
 
-## Recommended first configuration order
+## Recommended first-run flow
 
-Configure through the Control Panel (do not edit application source for CMS settings):
+```text
+Login at /cp
+  ↓
+Change password (when prompted)
+  ↓
+Configure site settings
+  ↓
+Configure theme
+  ↓
+Configure localization
+  ↓
+Configure SMTP (if required)
+  ↓
+Create and manage content
+```
+
+Configure through the Control Panel — do not edit application source for CMS settings.
+
+### Suggested configuration order
 
 1. Site settings (name, description, timezone)
 2. Primary locale / secondary locale (if required)
@@ -43,8 +71,9 @@ Configure through the Control Panel (do not edit application source for CMS sett
 
 ## Smoke checks
 
-- [ ] `/` shows the landing or your published homepage content
+- [ ] `/` shows the landing page or your published homepage content
 - [ ] `/cp` accepts login
+- [ ] Admin password changed after first login
 - [ ] Publish a Page and open its public URL
 - [ ] Publish a Post under `/news/...`
 - [ ] Upload an image and a document

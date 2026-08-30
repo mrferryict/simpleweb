@@ -8,36 +8,33 @@ Official release: **v1.0.0**
 ## Requirements
 
 - **PHP 8.5+**
-- Required extensions include at least: `intl`, `mbstring`, `gd`, `sodium`, and MySQL/MariaDB drivers
+- Required extensions include at least: `intl`, `mbstring`, `gd`, `sodium`, and MariaDB/MySQL drivers
 - **MariaDB** (MySQL-compatible)
 - **Composer**
 - **Git**
 - HTTPS in production
 - Cron (for scheduled publish/unpublish)
 - SMTP (password recovery / notifications)
-- Writable application storage for cache and uploads
-- **File cache** (no Redis required)
+- Writable application storage for cache, session, and uploads
+- **File cache** (`FileHandler` under `writable/cache`) — no Redis required
 - **No Docker**, **no Redis**, **no queue workers** required for V1
 
-## Quick start (new installation)
+## New installation
 
-1. Clone this repository (prefer the `v1.0.0` tag for a known release).
-2. Follow **[docs/client/INSTALLATION.md](docs/client/INSTALLATION.md)** end-to-end.
-3. After install:
-   - Public site: `https://YOUR-DOMAIN/`
-   - Control Panel: `https://YOUR-DOMAIN/cp`
+1. Clone this repository (prefer the `v1.0.0` tag or a later documented release tag).
+2. Copy `.env.example` to `.env` and fill in required values.
+3. Follow **[Client Installation](docs/client/INSTALLATION.md)** end-to-end.
 
-First Admin credentials are **never hard-coded**. Provide them via CLI flags or environment variables at install time (see installation guide). Placeholders:
+After install:
 
-```text
-cms.install.admin_username = YOUR_ADMIN_USERNAME
-cms.install.admin_email    = YOUR_ADMIN_EMAIL
-cms.install.admin_password = YOUR_ADMIN_PASSWORD
-```
+- Public site: `https://YOUR-DOMAIN/`
+- Control Panel: `https://YOUR-DOMAIN/cp`
+
+First Admin credentials are **never hard-coded**. Provide them via `.env` or CLI flags at `cms:install` time. See the installation guide.
 
 ## Updating an existing installation
 
-Follow **[docs/client/UPDATE.md](docs/client/UPDATE.md)**.
+Follow **[Client Update](docs/client/UPDATE.md)**.
 
 Do **not** run `composer update` in production. Use `composer install --no-dev` from the lockfile.
 
@@ -45,20 +42,30 @@ Do **not** run `composer update` in production. Use `composer install --no-dev` 
 
 | Document | Purpose |
 |---|---|
-| [INSTALLATION.md](docs/client/INSTALLATION.md) | New server install |
-| [FIRST-RUN.md](docs/client/FIRST-RUN.md) | First login and site setup |
-| [CONFIGURATION.md](docs/client/CONFIGURATION.md) | `.env` and operational config |
-| [UPDATE.md](docs/client/UPDATE.md) | Safe production updates |
-| [BACKUP-RESTORE.md](docs/client/BACKUP-RESTORE.md) | Database + uploads pairing |
-| [PRODUCTION-CHECKLIST.md](docs/client/PRODUCTION-CHECKLIST.md) | Go-live checklist |
+| [Client Installation](docs/client/INSTALLATION.md) | New server install |
+| [Client First Run](docs/client/FIRST-RUN.md) | First login and site setup |
+| [Client Configuration](docs/client/CONFIGURATION.md) | `.env` and operational config |
+| [Client Update](docs/client/UPDATE.md) | Safe production updates |
+| [Client Backup & Restore](docs/client/BACKUP-RESTORE.md) | Database + uploads pairing |
+| [Production Checklist](docs/client/PRODUCTION-CHECKLIST.md) | Go-live checklist |
 
 Internal architecture / product docs remain under [`docs/`](docs/) and [`adr/`](adr/).
+
+## Environment configuration
+
+Copy the template and edit on the server only:
+
+```bash
+cp .env.example .env
+```
+
+Never commit `.env`. See [Client Configuration](docs/client/CONFIGURATION.md) for security keys, SMTP, and auth throttle settings.
 
 ## Security warnings
 
 - Never commit `.env`, passwords, encryption keys, or HMAC secrets.
 - Keep the web server document root on `/public` — not the repository root.
-- Generate unique production values for `skey`, `EMAIL_ENCRYPTION_KEY`, and `EMAIL_LOOKUP_HMAC_KEY`.
+- Generate unique production values for `encryption.key`, `skey`, `EMAIL_ENCRYPTION_KEY`, and `EMAIL_LOOKUP_HMAC_KEY`.
 - Back up **MariaDB** and **`writable/uploads/`** together.
 
 ## Scheduler

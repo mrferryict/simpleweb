@@ -2,62 +2,102 @@
 
 Configuration lives in **`.env`** on the server. Never commit `.env`.
 
-Start from `.env.example` (safe placeholders only).
+Start from `.env.example`:
 
-## Application
+```bash
+cp .env.example .env
+```
+
+The example file is organized into seven sections: Environment, Application, Database, Security keys, CMS Admin credentials, SMTP, and Auth throttle.
+
+## 1. Environment
 
 | Setting | Notes |
 |---|---|
-| `CI_ENVIRONMENT` | Use `production` on live hosts |
-| `app.baseURL` | Full HTTPS URL with trailing `/` |
-| `app.forceGlobalSecureRequests` | Prefer `true` in production |
+| `CI_ENVIRONMENT` | Use `production` on live hosts; `development` only on local workstations |
 
-## Database
+## 2. Application
+
+| Setting | Notes |
+|---|---|
+| `app.baseURL` | Full public URL with trailing `/` (HTTPS in production) |
+| `app.forceGlobalSecureRequests` | Prefer `true` in production |
+| `app.indexPage` | Use `''` when the web server removes `index.php` from URLs |
+| `app.CSPEnabled` | V1 baseline: `false` |
+| `app.appTimezone` | PHP timezone for the application (e.g. `Asia/Jakarta`) |
+
+Site-level timezone and locale are also configurable in the Control Panel after install (`Config\Site` bootstrap defaults are persisted by `cms:install`).
+
+### Session and cache
+
+- Sessions use the **file** handler (`CodeIgniter\Session\Handlers\FileHandler`); default save path is `WRITEPATH/session`.
+- V1 cache uses the **file** handler (`FileHandler`) under `writable/cache`. No Redis is required.
+
+## 3. Database
 
 Configure `database.default.*` for MariaDB. Do not point production at a shared development database.
 
-## Security secrets
+## 4. Security keys
 
-| Variable | Notes |
-|---|---|
-| `skey` | Admin recovery secret — long, random, never logged |
-| `EMAIL_ENCRYPTION_KEY` | 64 hex chars (Sodium) |
-| `EMAIL_LOOKUP_HMAC_KEY` | 64 hex chars, **must differ** from encryption key |
+| Variable | Purpose | Generation |
+|---|---|---|
+| `encryption.key` | CodeIgniter application encryption | `php spark key:generate` or `php spark key:generate --show` |
+| `skey` | Admin recovery secret — long, random, never logged | `php -r 'echo bin2hex(random_bytes(32)), PHP_EOL;'` |
+| `EMAIL_ENCRYPTION_KEY` | PII email encryption (Sodium) — 64 hex chars | `php -r 'echo bin2hex(random_bytes(32)), PHP_EOL;'` |
+| `EMAIL_LOOKUP_HMAC_KEY` | Email lookup HMAC — 64 hex chars, **must differ** | Run the same command again with a different output |
+
+All four must be set before `php spark cms:install`.
 
 Rotating `EMAIL_LOOKUP_HMAC_KEY` invalidates existing email lookup hashes — treat as a breaking migration, not a casual config tweak.
 
-## Install-time Admin (first install only)
+## 5. CMS Admin credentials (first install only)
 
 | Variable | Notes |
 |---|---|
-| `cms.install.admin_username` | Lowercase username |
-| `cms.install.admin_email` | Unique email (stored encrypted) |
-| `cms.install.admin_password` | Meets password policy; change after first login |
+| `cms.install.admin_username` | Lowercase alphanumeric and `.` only; 3–30 characters |
+| `cms.install.admin_email` | Valid email (stored encrypted) |
+| `cms.install.admin_password` | Meets password policy; leave empty in `.env.example`; set a unique value before install |
 
-After installation these are unused for login; users authenticate with the credentials stored by Shield.
+These values are used only during the initial `cms:install` run. They are not demo credentials and are not hard-coded in the application. Change the Admin password after first login.
 
-## Auth throttling
+CLI alternative:
 
-Operational rates come only from environment keys such as:
+```bash
+php spark cms:install \
+    --username admin \
+    --email admin@example.com \
+    --password 'YOUR_SECURE_PASSWORD'
+```
+
+## 6. SMTP
+
+SMTP is optional in the template but recommended for password recovery in production.
+
+| Setting | Notes |
+|---|---|
+| `email.fromEmail` | Sender address |
+| `email.fromName` | Sender display name |
+| `email.protocol` | Use `smtp` for remote SMTP |
+| `email.SMTPHost` | SMTP server hostname |
+| `email.SMTPUser` | Leave empty until configured |
+| `email.SMTPPass` | Leave empty until configured |
+| `email.SMTPPort` | Common value: `587` |
+| `email.SMTPCrypto` | Common value: `tls` |
+
+## 7. Auth throttling
+
+Operational rates come only from environment keys:
 
 - `auth.throttle.login.capacity` / `.seconds`
-- `auth.throttle.password_reset_request.*`
-- `auth.throttle.password_reset_verify.*`
-- `auth.throttle.admin_recovery.*`
+- `auth.throttle.password_reset_request.capacity` / `.seconds`
+- `auth.throttle.password_reset_verify.capacity` / `.seconds`
+- `auth.throttle.admin_recovery.capacity` / `.seconds`
 
-Unconfigured surfaces fail closed. Do not invent product rate numbers in application code.
-
-## SMTP
-
-Configure `email.protocol`, `email.SMTPHost`, `email.SMTPUser`, `email.SMTPPass`, `email.SMTPPort`, `email.SMTPCrypto`, and from-address fields for password recovery.
-
-## Cache
-
-V1 uses the **file** cache handler under `writable/cache`. No Redis is required.
+The V1 product contract does **not** define numeric throttle defaults. Set **both** capacity and seconds per surface in your deployment environment. Unconfigured surfaces fail closed. Do not invent product rate numbers in application code or documentation.
 
 ## Uploads
 
-Application storage:
+Application storage (include in backups):
 
 - `writable/uploads/images/`
 - `writable/uploads/documents/`

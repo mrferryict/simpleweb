@@ -6,54 +6,96 @@ For a brand-new server, use [INSTALLATION.md](INSTALLATION.md).
 
 ## Principles
 
-- Prefer Git tags / release commits over ad-hoc local edits on the server.
+- Prefer Git **release tags** over ad-hoc local edits on the server.
 - Use `composer install --no-dev` from `composer.lock` — **not** `composer update`.
 - Never overwrite server-local `.env` or `writable/uploads/` from Git.
-- If the server working tree has uncommitted local modifications, **stop** and resolve them before updating.
+- If the server working tree has uncommitted local modifications, **stop** and resolve them before updating. `git pull` is not universally safe on a dirty tree.
 
 ## Recommended sequence
 
+### 1. Back up the database
+
+Take a MariaDB dump before any update. See [BACKUP-RESTORE.md](BACKUP-RESTORE.md).
+
+### 2. Back up uploads
+
+Archive `writable/uploads/images/` and `writable/uploads/documents/` together with the database backup.
+
+### 3. Maintenance state (if required)
+
+If your hosting policy requires a maintenance window, enable it before changing application code.
+
+### 4. Check the working tree
+
 ```bash
 cd /path/to/smite-cms
-
-# Stop if the tree is dirty with unexpected local edits
 git status
+```
 
-# Fetch and check out the target release tag (example)
+If unexpected local source modifications appear, stop and resolve them before continuing.
+
+### 5. Fetch and check out the target release
+
+```bash
 git fetch --tags
 git checkout v1.0.0
+```
 
+Replace `v1.0.0` with the release tag you intend to deploy. Prefer tagged releases over arbitrary branch tips.
+
+### 6. Install PHP dependencies
+
+```bash
 composer install --no-dev --prefer-dist --optimize-autoloader
+```
 
+### 7. Check migration status
+
+```bash
 php spark migrate:status
 ```
 
-If pending migrations are shown and the release notes require them:
+### 8. Run pending migrations (if required)
+
+If pending migrations are shown and the release notes require them — and you have a verified backup:
 
 ```bash
 php spark migrate
 ```
 
-Only run migrations when the release documentation says they are required and you have a verified backup.
+Only run migrations when the release documentation says they are required.
 
-Then smoke-test:
+### 9. Verify environment
 
-- `https://YOUR-DOMAIN/`
-- `https://YOUR-DOMAIN/cp`
-- Publish flow, media, scheduler cron, SMTP recovery as appropriate
+Confirm `.env` on the server was **not** overwritten by Git. Required secrets and database settings must still be present.
+
+### 10. Smoke test
+
+- Public site: `https://YOUR-DOMAIN/`
+- Control Panel: `https://YOUR-DOMAIN/cp`
+- Page and Post publish flows
+- Media upload
+- SMTP password recovery (if used)
+- Scheduler cron (`cms:scheduled-content`)
 
 ## Flow summary
 
 ```text
-GitHub release tag
-    ↓
-git fetch / checkout tag
-    ↓
+Backup database + uploads
+  ↓
+Check git status (stop if dirty)
+  ↓
+git fetch / checkout release tag
+  ↓
 composer install --no-dev (from lock)
-    ↓
-migrate if required (after backup)
-    ↓
-smoke test
+  ↓
+php spark migrate:status
+  ↓
+php spark migrate (if required, after backup)
+  ↓
+Verify .env unchanged
+  ↓
+Smoke test / and /cp
 ```
 
 ## Do not
@@ -62,3 +104,14 @@ smoke test
 - Commit secrets
 - Blindly `git pull` over a dirty tree with local hotfixes
 - Point the web root at the repository root
+- Overwrite `writable/uploads/` from Git
+
+## Commands reference
+
+| Command | Purpose |
+|---|---|
+| `php spark migrate:status` | Show migration status |
+| `php spark migrate` | Run pending migrations |
+| `php spark list` | List Spark commands |
+
+There is no separate `cms:update` command. Updates use Git + Composer + migrations as documented above.
