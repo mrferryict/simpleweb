@@ -12,6 +12,7 @@ use CodeIgniter\Filters\InvalidChars;
 use CodeIgniter\Filters\PageCache;
 use CodeIgniter\Filters\PerformanceMetrics;
 use CodeIgniter\Filters\SecureHeaders;
+use CodeIgniter\Shield\Filters\ForcePasswordResetFilter;
 use CodeIgniter\Shield\Filters\GroupFilter;
 use CodeIgniter\Shield\Filters\PermissionFilter;
 use App\Filters\CsrfTokenHeaderFilter;
@@ -55,6 +56,7 @@ class Filters extends BaseFilters
         'group'         => GroupFilter::class,
         // Shield permission authorization (DOC-03 site.manage for Settings).
         'permission'    => PermissionFilter::class,
+        'force-reset'   => ForcePasswordResetFilter::class,
         'publicLocale'  => \App\Filters\LocaleFilter::class,
     ];
 

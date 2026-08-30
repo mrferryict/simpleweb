@@ -10,6 +10,7 @@ use App\Services\Audit\AuditService;
 use App\Services\Security\AuthThrottleService;
 use CodeIgniter\HTTP\RedirectResponse;
 use CodeIgniter\HTTP\ResponseInterface;
+use CodeIgniter\Shield\Entities\User;
 use Throwable;
 
 /**
@@ -87,6 +88,11 @@ class AuthController extends BaseController
             null,
             ['surface' => 'login'],
         );
+
+        $user = auth()->user();
+        if ($user instanceof User && $user->requiresPasswordReset()) {
+            return redirect()->to(config('Auth')->forcePasswordResetRedirect());
+        }
 
         return redirect()->to('/admin');
     }

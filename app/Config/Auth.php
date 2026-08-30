@@ -77,7 +77,7 @@ class Auth extends ShieldAuth
         'register'          => '/',
         'login'             => 'cp',
         'logout'            => 'cp',
-        'force_reset'       => '/',
+        'force_reset'       => 'cp/password-change',
         'permission_denied' => '/',
         'group_denied'      => '/',
     ];

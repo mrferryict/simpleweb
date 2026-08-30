@@ -29,6 +29,11 @@ $routes->get('cp/password-reset/verify', 'Auth\PasswordResetController::verifyFo
 $routes->post('cp/password-reset/verify', 'Auth\PasswordResetController::verifySubmit');
 $routes->match(['GET', 'POST'], 'cp/admin-recovery', 'Auth\AdminRecoveryController::recover');
 
+$routes->group('cp', ['filter' => 'session'], static function ($routes): void {
+    $routes->get('password-change', 'Auth\PasswordChangeController::show');
+    $routes->post('password-change', 'Auth\PasswordChangeController::submit');
+});
+
 /*
  |--------------------------------------------------------------------
  | Public Post rendering (Phase 3 / Task 3.9 / ADR-016)
@@ -72,7 +77,7 @@ $routes->get('robots.txt', 'Site\RobotsController::index', ['filter' => 'publicL
 
 $routes->group(
     'admin',
-    ['filter' => ['session', 'group:admin,editor,contributor']],
+    ['filter' => ['session', 'force-reset', 'group:admin,editor,contributor']],
     static function ($routes): void {
         $routes->get('/', 'Admin\AdminController::index');
 

@@ -10,6 +10,7 @@ use App\Services\Audit\AuditService;
 use App\Services\Security\AuthThrottleService;
 use App\Services\Security\UserEmailService;
 use CodeIgniter\HTTP\ResponseInterface;
+use CodeIgniter\Shield\Entities\User;
 use CodeIgniter\Shield\Models\UserModel;
 use Throwable;
 
@@ -126,8 +127,17 @@ class PasswordResetController extends BaseController
                 ]);
             }
 
+            if (! $user instanceof User) {
+                return view('admin/auth/password_reset_verify', [
+                    'error'   => self::GENERIC,
+                    'success' => null,
+                    'token'   => '',
+                ]);
+            }
+
             $user->password = $password;
             $users->save($user);
+            $user->undoForcePasswordReset();
             cache()->delete('auth.reset.' . $token);
 
             (void) $this->auditService()->append(

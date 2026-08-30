@@ -77,6 +77,7 @@ class AdminRecoveryController extends BaseController
 
             $user->password = $password;
             $users->save($user);
+            $user->undoForcePasswordReset();
 
             (void) $this->auditService()->append(
                 AuditEvent::AdminRecovery,
