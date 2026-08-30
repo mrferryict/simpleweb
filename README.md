@@ -3,7 +3,7 @@
 SMITE CMS is a single-organization, single-website public Content Management System
 built on CodeIgniter 4. It is not a website builder.
 
-Official release: **v1.0.0**
+Official release: **v1.1.1**
 
 ## Requirements
 
@@ -21,7 +21,7 @@ Official release: **v1.0.0**
 
 ## New installation
 
-1. Clone this repository (prefer the `v1.0.0` tag or a later documented release tag).
+1. Clone this repository (prefer the `v1.1.1` tag or a later documented release tag).
 2. Copy `.env.example` to `.env` and fill in required values (database, security keys, Admin credentials, **auth throttle**).
 3. Follow **[Client Installation](docs/client/INSTALLATION.md)** end-to-end.
 
@@ -68,7 +68,7 @@ Never commit `.env`. See [Client Configuration](docs/client/CONFIGURATION.md) fo
 - Never commit `.env`, passwords, encryption keys, or HMAC secrets.
 - Keep the web server document root on `/public` — not the repository root.
 - Generate unique production values for `encryption.key`, `skey`, `EMAIL_ENCRYPTION_KEY`, and `EMAIL_LOOKUP_HMAC_KEY`.
-- Back up **MariaDB** and **`writable/uploads/`** together.
+- Back up **MariaDB**, **`public/uploads/images/`**, and **`writable/uploads/documents/`** together.
 
 ## Scheduler
 

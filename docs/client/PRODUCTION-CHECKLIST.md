@@ -12,7 +12,7 @@ Use before go-live and after major changes.
 - [ ] HTTPS enabled
 - [ ] Cron available
 - [ ] SMTP available (if password recovery is required)
-- [ ] Correct filesystem permissions on `writable/cache`, `writable/session`, `writable/logs`, `writable/uploads/`
+- [ ] Correct filesystem permissions on `writable/cache`, `writable/session`, `writable/logs`, `writable/uploads/documents/`, and `public/uploads/images/`
 - [ ] Web server document root points to `/public`
 
 ## Environment
@@ -61,8 +61,8 @@ Use before go-live and after major changes.
 
 ## Backup
 
-- [ ] MariaDB backup scheduled
-- [ ] `writable/uploads/images/` backup scheduled
-- [ ] `writable/uploads/documents/` backup scheduled
-- [ ] Database and uploads backed up as a **pair**
-- [ ] Restore procedure understood or tested on non-production
+- [ ] Database backup configured
+- [ ] `public/uploads/images/` included in backup
+- [ ] `writable/uploads/documents/` included in backup
+- [ ] Database and both upload locations backed up as a **set**
+- [ ] Restore procedure covers both upload locations and is understood or tested on non-production

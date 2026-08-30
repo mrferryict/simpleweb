@@ -112,9 +112,11 @@ Configure all four surfaces in `.env` before using authentication routes. `.env.
 
 ## Uploads
 
-Application storage (include in backups):
+SMITE CMS uses two upload locations. Include **both** in backups — see [BACKUP-RESTORE.md](BACKUP-RESTORE.md).
 
-- `writable/uploads/images/`
-- `writable/uploads/documents/`
+| Path | Role |
+|---|---|
+| `public/uploads/images/` | Public processed image assets (served under `/uploads/images/…`) |
+| `writable/uploads/documents/` | Private document storage (served through the application) |
 
-Keep these writable and include them in backups.
+Ensure the application user can write to both paths. Do not move public images into `writable/` — V1 stores image binaries under `public/uploads/images/`.

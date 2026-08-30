@@ -8,7 +8,7 @@ For a brand-new server, use [INSTALLATION.md](INSTALLATION.md).
 
 - Prefer Git **release tags** over ad-hoc local edits on the server.
 - Use `composer install --no-dev` from `composer.lock` — **not** `composer update`.
-- Never overwrite server-local `.env` or `writable/uploads/` from Git.
+- Never overwrite server-local `.env`, `public/uploads/images/`, or `writable/uploads/documents/` from Git.
 - If the server working tree has uncommitted local modifications, **stop** and resolve them before updating. `git pull` is not universally safe on a dirty tree.
 
 ## Recommended sequence
@@ -19,7 +19,7 @@ Take a MariaDB dump before any update. See [BACKUP-RESTORE.md](BACKUP-RESTORE.md
 
 ### 2. Back up uploads
 
-Archive `writable/uploads/images/` and `writable/uploads/documents/` together with the database backup.
+Archive `public/uploads/images/` and `writable/uploads/documents/` together with the database backup.
 
 ### 3. Maintenance state (if required)
 
@@ -38,10 +38,10 @@ If unexpected local source modifications appear, stop and resolve them before co
 
 ```bash
 git fetch --tags
-git checkout v1.0.0
+git checkout v1.1.1
 ```
 
-Replace `v1.0.0` with the release tag you intend to deploy. Prefer tagged releases over arbitrary branch tips.
+Replace `v1.1.1` with the release tag you intend to deploy. Prefer tagged releases over arbitrary branch tips.
 
 ### 6. Install PHP dependencies
 
@@ -104,7 +104,7 @@ Smoke test / and /cp
 - Commit secrets
 - Blindly `git pull` over a dirty tree with local hotfixes
 - Point the web root at the repository root
-- Overwrite `writable/uploads/` from Git
+- Overwrite `public/uploads/images/` or `writable/uploads/documents/` from Git
 
 ## Commands reference
 

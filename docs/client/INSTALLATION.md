@@ -53,7 +53,7 @@ Prefer a documented release tag over an arbitrary branch tip:
 
 ```bash
 git fetch --tags
-git checkout v1.0.0
+git checkout v1.1.1
 ```
 
 ## 6. Install PHP dependencies (production)
@@ -204,8 +204,10 @@ Ensure these paths are writable by the application user:
 - `writable/cache`
 - `writable/session`
 - `writable/logs`
-- `writable/uploads/images/`
-- `writable/uploads/documents/`
+- `writable/uploads/documents/` — private document uploads
+- `public/uploads/images/` — public processed image uploads (served under `/uploads/images/…`)
+
+Both upload paths must be included in backups — see [BACKUP-RESTORE.md](BACKUP-RESTORE.md).
 
 ## 16. Enable HTTPS
 
@@ -217,7 +219,7 @@ Production should serve the site over HTTPS. `app.forceGlobalSecureRequests = tr
 https://your-domain.example/
 ```
 
-A fresh install shows the default SMITE CMS landing page (“Website is ready.”). No Page or Post must exist first.
+A fresh install shows the default **Theme 2026** landing page at `GET /`. No Page or Post must exist first.
 
 ## 18. Open the Control Panel
 
@@ -249,7 +251,7 @@ Adjust the path to match your deployment.
 
 ## 23. Configure backup
 
-Schedule paired backups of the MariaDB database and `writable/uploads/` — see [BACKUP-RESTORE.md](BACKUP-RESTORE.md).
+Schedule paired backups of the MariaDB database, `public/uploads/images/`, and `writable/uploads/documents/` — see [BACKUP-RESTORE.md](BACKUP-RESTORE.md).
 
 ## 24. Production smoke test
 
