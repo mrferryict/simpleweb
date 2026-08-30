@@ -11,6 +11,7 @@ Prepare server
   → create .env from .env.example
   → configure database and security keys
   → configure initial Admin credentials
+  → configure auth throttle (operational)
   → php spark cms:install
   → configure web server + HTTPS + cron
   → verify / and /cp
@@ -132,11 +133,34 @@ Use **space-separated** flags (`--username value`), not `--username=value`.
 
 CLI flags override environment values when provided.
 
-## 12. Configure SMTP (if needed)
+## 12. Configure auth throttle (operational — required)
+
+Authentication surfaces (`/cp` login, password reset, Admin recovery) use `AuthThrottleService` with CI4 Throttler. ADR-026 does **not** prescribe numeric product values — capacity and window are **deployment configuration**.
+
+If throttle values are missing or invalid, the application **fails closed** and `/cp` login returns “Too many attempts” even on the first try.
+
+Copy the example operational values from `.env.example` section 7, then adjust them for your deployment security policy:
+
+```dotenv
+auth.throttle.login.capacity = 10
+auth.throttle.login.seconds = 60
+auth.throttle.password_reset_request.capacity = 5
+auth.throttle.password_reset_request.seconds = 300
+auth.throttle.password_reset_verify.capacity = 5
+auth.throttle.password_reset_verify.seconds = 300
+auth.throttle.admin_recovery.capacity = 3
+auth.throttle.admin_recovery.seconds = 600
+```
+
+These numbers are **example deployment values**, not SMITE CMS product policy. See [CONFIGURATION.md](CONFIGURATION.md#auth-throttling).
+
+Configure throttle **before** opening `/cp`. Do not commit `.env` to Git.
+
+## 13. Configure SMTP (if needed)
 
 SMTP is optional in `.env.example` but recommended for password recovery in production. See [CONFIGURATION.md](CONFIGURATION.md#smtp).
 
-## 13. Run the installer
+## 14. Run the installer
 
 ```bash
 php spark cms:install
@@ -155,7 +179,7 @@ The installer:
 
 Running `php spark cms:install` again on an already-installed system prints an informational message and makes **no** destructive changes (no second Admin, no credential reset).
 
-## 14. Configure the web server
+## 15. Configure the web server
 
 Point the virtual host **document root** to:
 
@@ -173,11 +197,11 @@ Ensure these paths are writable by the application user:
 - `writable/uploads/images/`
 - `writable/uploads/documents/`
 
-## 15. Enable HTTPS
+## 16. Enable HTTPS
 
 Production should serve the site over HTTPS. `app.forceGlobalSecureRequests = true` is recommended.
 
-## 16. Open the public site
+## 17. Open the public site
 
 ```text
 https://your-domain.example/
@@ -185,35 +209,31 @@ https://your-domain.example/
 
 A fresh install shows the default SMITE CMS landing page (“Website is ready.”). No Page or Post must exist first.
 
-## 17. Open the Control Panel
+## 18. Open the Control Panel
 
 ```text
 https://your-domain.example/cp
 ```
 
-## 18. Log in
+## 19. Log in
 
-Sign in with the administrator-provided credentials from step 11.
+Sign in with the administrator-provided credentials from step 11. Throttle must be configured (step 12) or login is denied.
 
-## 19. Change the initial password
+## 20. Change the initial password
 
 When force password reset is active, change the password immediately through the application flow. Do not leave the install-time password in use.
 
-## 20. Configure the CMS
+## 21. Configure the CMS
 
 Continue with [FIRST-RUN.md](FIRST-RUN.md) for site settings, theme, localization, content, and operational checks.
 
-## 21. Configure cron (scheduled content)
+## 22. Configure cron (scheduled content)
 
 ```bash
 * * * * * php /path/to/smite-cms/spark cms:scheduled-content
 ```
 
 Adjust the path to match your deployment.
-
-## 22. Configure auth throttle (operational)
-
-If your deployment requires rate limiting on login, password reset, or Admin recovery surfaces, set the `auth.throttle.*` keys in `.env`. Unconfigured surfaces fail closed. See [CONFIGURATION.md](CONFIGURATION.md#auth-throttling).
 
 ## 23. Configure backup
 

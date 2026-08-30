@@ -86,14 +86,29 @@ SMTP is optional in the template but recommended for password recovery in produc
 
 ## 7. Auth throttling
 
-Operational rates come only from environment keys:
+Authentication is throttled on four surfaces:
 
-- `auth.throttle.login.capacity` / `.seconds`
-- `auth.throttle.password_reset_request.capacity` / `.seconds`
-- `auth.throttle.password_reset_verify.capacity` / `.seconds`
-- `auth.throttle.admin_recovery.capacity` / `.seconds`
+| Surface | Environment prefix |
+|---|---|
+| Login (`/cp`) | `auth.throttle.login` |
+| Password reset request | `auth.throttle.password_reset_request` |
+| Password reset verification | `auth.throttle.password_reset_verify` |
+| Admin recovery | `auth.throttle.admin_recovery` |
 
-The V1 product contract does **not** define numeric throttle defaults. Set **both** capacity and seconds per surface in your deployment environment. Unconfigured surfaces fail closed. Do not invent product rate numbers in application code or documentation.
+Each surface requires **both** keys:
+
+- `auth.throttle.<surface>.capacity`
+- `auth.throttle.<surface>.seconds`
+
+### Deployment configuration (not product policy)
+
+ADR-026 wires required authentication surfaces to CI4 Throttler but **does not** define numeric capacity/window values. The numbers in `.env.example` are **example deployment operational values** — adjust them to match your security policy. They are not SMITE CMS product mandates.
+
+### Fail-closed behavior
+
+If throttle configuration is missing or invalid for a surface, `AuthThrottleService` denies the request. A fresh deployment without throttle values configured will show “Too many attempts” at `/cp` even on the first login attempt.
+
+Configure all four surfaces in `.env` before using authentication routes. `.env.example` is a template only — create `.env` on the server and never commit it to Git.
 
 ## Uploads
 

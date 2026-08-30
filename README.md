@@ -22,7 +22,7 @@ Official release: **v1.0.0**
 ## New installation
 
 1. Clone this repository (prefer the `v1.0.0` tag or a later documented release tag).
-2. Copy `.env.example` to `.env` and fill in required values.
+2. Copy `.env.example` to `.env` and fill in required values (database, security keys, Admin credentials, **auth throttle**).
 3. Follow **[Client Installation](docs/client/INSTALLATION.md)** end-to-end.
 
 After install:
@@ -59,7 +59,7 @@ Copy the template and edit on the server only:
 cp .env.example .env
 ```
 
-Never commit `.env`. See [Client Configuration](docs/client/CONFIGURATION.md) for security keys, SMTP, and auth throttle settings.
+Never commit `.env`. See [Client Configuration](docs/client/CONFIGURATION.md) for security keys, SMTP, and **auth throttle** (required operational configuration — unconfigured surfaces fail closed at `/cp`).
 
 ## Security warnings
 

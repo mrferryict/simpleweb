@@ -64,5 +64,14 @@
         <env name="EMAIL_ENCRYPTION_KEY" value="e49df5a504b3e8f1ca7dff30c57a4f7fa75d75780e748ec3c093bcd288e9383e"/>
         <env name="EMAIL_LOOKUP_HMAC_KEY" value="be3a78d9d3dc3a874f32ce45f215316506e7c7cc98d99fc95a29ff3f9dfbd752"/>
         <env name="skey" value="test-admin-recovery-secret-not-for-production"/>
+        <!-- ADR-026 operational throttle test fixture (not product policy). Mirrors .env.example deployment keys. -->
+        <env name="auth.throttle.login.capacity" value="10"/>
+        <env name="auth.throttle.login.seconds" value="60"/>
+        <env name="auth.throttle.password_reset_request.capacity" value="5"/>
+        <env name="auth.throttle.password_reset_request.seconds" value="300"/>
+        <env name="auth.throttle.password_reset_verify.capacity" value="5"/>
+        <env name="auth.throttle.password_reset_verify.seconds" value="300"/>
+        <env name="auth.throttle.admin_recovery.capacity" value="3"/>
+        <env name="auth.throttle.admin_recovery.seconds" value="600"/>
     </php>
 </phpunit>

@@ -94,6 +94,8 @@ final class InstallCmsCommandTest extends CIUnitTestCase
 
     public function testMissingCredentialsFailWithoutCreatingAdmin(): void
     {
+        $this->clearInstallEnvCredentials();
+
         $installer = Services::installService(getShared: false);
 
         try {
@@ -213,6 +215,21 @@ final class InstallCmsCommandTest extends CIUnitTestCase
         $this->assertStringNotContainsString('SuperSecretPass1!', $again['message']);
         $this->assertStringNotContainsString('secret.admin@example.com', $again['message']);
         $this->assertStringNotContainsString('EMAIL_', $again['message']);
+    }
+
+    /**
+     * Temporarily set cms.install.admin_* for the callback, then clear them.
+     */
+    private function clearInstallEnvCredentials(): void
+    {
+        foreach ([
+            'cms.install.admin_username',
+            'cms.install.admin_email',
+            'cms.install.admin_password',
+        ] as $key) {
+            putenv($key);
+            unset($_ENV[$key], $_SERVER[$key]);
+        }
     }
 
     /**

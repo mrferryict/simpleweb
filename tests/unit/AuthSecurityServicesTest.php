@@ -37,6 +37,13 @@ final class AuthSecurityServicesTest extends CIUnitTestCase
     protected $migrate = true;
     protected $refresh = true;
 
+    protected function tearDown(): void
+    {
+        $this->restoreAuthThrottleTestFixture();
+
+        parent::tearDown();
+    }
+
     public function testUserEmailStoresCipherAndLookupSeparately(): void
     {
         $db = db_connect();
@@ -99,23 +106,55 @@ final class AuthSecurityServicesTest extends CIUnitTestCase
 
     public function testAuthThrottleConfigHasNoInventedNumericDefaults(): void
     {
-        $config = new AuthThrottle();
+        $ref = new \ReflectionClass(AuthThrottle::class);
 
-        $this->assertNull($config->login);
-        $this->assertNull($config->passwordResetRequest);
-        $this->assertNull($config->passwordResetVerify);
-        $this->assertNull($config->adminRecovery);
+        foreach (['login', 'passwordResetRequest', 'passwordResetVerify', 'adminRecovery'] as $property) {
+            $this->assertNull($ref->getProperty($property)->getDefaultValue());
+        }
     }
 
     public function testAuthThrottleUnconfiguredFailsClosed(): void
     {
-        $config = new AuthThrottle();
+        $this->clearAuthThrottleEnvironment();
+
+        $config  = new AuthThrottle();
         $service = new AuthThrottleService(Services::throttler(getShared: false), $config);
 
         $this->assertFalse($service->allow('login', '203.0.113.50'));
         $this->assertFalse($service->allow('password_reset_request', '203.0.113.50'));
         $this->assertFalse($service->allow('password_reset_verify', '203.0.113.50'));
         $this->assertFalse($service->allow('admin_recovery', '203.0.113.50'));
+    }
+
+    public function testAuthThrottleDeploymentFixtureFromEnvironmentAllows(): void
+    {
+        $config = new AuthThrottle();
+
+        $this->assertNotNull($config->login);
+        $this->assertNotNull($config->passwordResetRequest);
+        $this->assertNotNull($config->passwordResetVerify);
+        $this->assertNotNull($config->adminRecovery);
+
+        $service = new AuthThrottleService(Services::throttler(getShared: false), $config);
+
+        $this->assertTrue($service->allow('login', '203.0.113.60'));
+        $this->assertTrue($service->allow('password_reset_request', '203.0.113.61'));
+        $this->assertTrue($service->allow('password_reset_verify', '203.0.113.62'));
+        $this->assertTrue($service->allow('admin_recovery', '203.0.113.63'));
+    }
+
+    public function testAuthThrottleInvalidEnvironmentFailsClosed(): void
+    {
+        $this->setAuthThrottleEnvironment([
+            'auth.throttle.login.capacity' => '0',
+            'auth.throttle.login.seconds'   => '60',
+        ]);
+
+        $config  = new AuthThrottle();
+        $service = new AuthThrottleService(Services::throttler(getShared: false), $config);
+
+        $this->assertNull($config->login);
+        $this->assertFalse($service->allow('login', '203.0.113.70'));
     }
 
     public function testAuthThrottleAllowsThenRejects(): void
@@ -156,5 +195,62 @@ final class AuthSecurityServicesTest extends CIUnitTestCase
         $this->assertFalse($service->allow('password_reset_request', '198.51.100.1'));
         $this->assertTrue($service->allow('password_reset_verify', '198.51.100.1'));
         $this->assertTrue($service->allow('admin_recovery', '198.51.100.1'));
+    }
+
+    /**
+     * @param array<string, string|null> $values null removes the key
+     */
+    private function setAuthThrottleEnvironment(array $values): void
+    {
+        $this->clearAuthThrottleEnvironment();
+
+        foreach ($values as $key => $value) {
+            if ($value === null) {
+                continue;
+            }
+
+            putenv($key . '=' . $value);
+            $_ENV[$key]    = $value;
+            $_SERVER[$key] = $value;
+        }
+    }
+
+    private function clearAuthThrottleEnvironment(): void
+    {
+        $keys = [
+            'auth.throttle.login.capacity',
+            'auth.throttle.login.seconds',
+            'auth.throttle.password_reset_request.capacity',
+            'auth.throttle.password_reset_request.seconds',
+            'auth.throttle.password_reset_verify.capacity',
+            'auth.throttle.password_reset_verify.seconds',
+            'auth.throttle.admin_recovery.capacity',
+            'auth.throttle.admin_recovery.seconds',
+        ];
+
+        foreach ($keys as $key) {
+            putenv($key);
+            unset($_ENV[$key], $_SERVER[$key]);
+        }
+    }
+
+    private function restoreAuthThrottleTestFixture(): void
+    {
+        $fixture = [
+            'auth.throttle.login.capacity'                  => '10',
+            'auth.throttle.login.seconds'                   => '60',
+            'auth.throttle.password_reset_request.capacity' => '5',
+            'auth.throttle.password_reset_request.seconds'  => '300',
+            'auth.throttle.password_reset_verify.capacity'  => '5',
+            'auth.throttle.password_reset_verify.seconds'   => '300',
+            'auth.throttle.admin_recovery.capacity'         => '3',
+            'auth.throttle.admin_recovery.seconds'          => '600',
+        ];
+
+        foreach ($fixture as $key => $value) {
+            putenv($key . '=' . $value);
+            $_ENV[$key]    = $value;
+            $_SERVER[$key] = $value;
+        }
     }
 }

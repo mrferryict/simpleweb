@@ -26,7 +26,7 @@ Use before go-live and after major changes.
 - [ ] `EMAIL_ENCRYPTION_KEY` and `EMAIL_LOOKUP_HMAC_KEY` generated (different values)
 - [ ] Initial Admin credentials configured for `cms:install`
 - [ ] SMTP configured (if required)
-- [ ] Auth throttle keys configured (if required by deployment policy)
+- [ ] Auth throttle operational values configured for all four surfaces (required before `/cp` login)
 
 ## Application
 

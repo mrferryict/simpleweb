@@ -215,6 +215,12 @@ final class SecurityHardeningTest extends CIUnitTestCase
     public function testUnconfiguredThrottleDeniesOpaquelyWithoutLeakingInternals(): void
     {
         $config = new AuthThrottle();
+        // Explicitly unconfigured — deployment env may supply operational values in other tests.
+        $config->login                  = null;
+        $config->passwordResetRequest   = null;
+        $config->passwordResetVerify    = null;
+        $config->adminRecovery          = null;
+
         Services::injectMock(
             'authThrottleService',
             new AuthThrottleService(Services::throttler(getShared: false), $config),
