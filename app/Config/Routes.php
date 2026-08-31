@@ -180,6 +180,19 @@ $routes->group(
         $routes->post('posts/(:num)/schedules/(:num)/cancel', 'Admin\PostController::cancelSchedule/$1/$2');
 
         /*
+         | Users — V2-003 user.manage (ADR-027 P0-1).
+         */
+        $routes->group('users', ['filter' => 'permission:user.manage'], static function ($routes): void {
+            $routes->get('/', 'Admin\UserController::index');
+            $routes->get('new', 'Admin\UserController::create');
+            $routes->post('/', 'Admin\UserController::store');
+            $routes->get('(:num)/edit', 'Admin\UserController::edit/$1');
+            $routes->post('(:num)', 'Admin\UserController::update/$1');
+            $routes->post('(:num)/activate', 'Admin\UserController::activate/$1');
+            $routes->post('(:num)/deactivate', 'Admin\UserController::deactivate/$1');
+        });
+
+        /*
          | Categories — DOC-03 category.manage (REQ-CAT-002).
          */
         $routes->group('categories', ['filter' => 'permission:category.manage'], static function ($routes): void {

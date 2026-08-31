@@ -28,6 +28,10 @@
             <label for="password"><?= esc('New password') ?></label>
             <input type="password" id="password" name="password" autocomplete="new-password" required>
         </div>
+        <div>
+            <label for="password_confirm"><?= esc('Confirm new password') ?></label>
+            <input type="password" id="password_confirm" name="password_confirm" autocomplete="new-password" required>
+        </div>
         <button type="submit"><?= esc('Recover') ?></button>
     </form>
 </main>

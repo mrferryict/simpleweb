@@ -10,7 +10,7 @@ use CodeIgniter\Database\MigrationRunner;
 use CodeIgniter\Shield\Entities\User;
 use CodeIgniter\Shield\Models\UserModel;
 use CodeIgniter\Settings\Settings;
-use Config\Auth;
+use Config\Services;
 use Config\Site as SiteConfig;
 use RuntimeException;
 use Throwable;
@@ -305,10 +305,14 @@ final class InstallService
             throw new RuntimeException('Admin email format is invalid.');
         }
 
-        /** @var Auth $auth */
-        $auth = config(Auth::class);
-        if (strlen($credentials['password']) < $auth->minimumPasswordLength) {
-            throw new RuntimeException('Admin password does not meet the minimum length requirement.');
+        $policyError = Services::passwordPolicyService(getShared: false)
+            ->validatePasswordForUsername(
+                $credentials['password'],
+                $credentials['username'],
+                $credentials['email'],
+            );
+        if ($policyError !== null) {
+            throw new RuntimeException($policyError);
         }
     }
 

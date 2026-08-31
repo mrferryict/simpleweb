@@ -115,7 +115,7 @@ final class InstallCmsCommandTest extends CIUnitTestCase
         $this->withInstallEnvCredentials(
             username: 'env.only.admin',
             email: 'env.only.admin@example.com',
-            password: 'EnvOnlyPass99!',
+            password: 'Xk9$mQn2pL7#vR4wT8',
             callback: function (): void {
                 $installer = Services::installService(getShared: false);
                 $result    = $installer->install([]);
@@ -138,7 +138,7 @@ final class InstallCmsCommandTest extends CIUnitTestCase
                     ->getRowArray();
                 $this->assertNotNull($identity);
                 $this->assertSame(1, (int) $identity['force_reset']);
-                $this->assertStringNotContainsString('EnvOnlyPass99!', (string) $identity['secret']);
+                $this->assertStringNotContainsString('Xk9$mQn2pL7#vR4wT8', (string) $identity['secret']);
                 $this->assertSame(0, $db->table('pages')->countAllResults());
             },
         );
@@ -149,7 +149,7 @@ final class InstallCmsCommandTest extends CIUnitTestCase
         $this->withInstallEnvCredentials(
             username: 'empty.cli.admin',
             email: 'empty.cli.admin@example.com',
-            password: 'EmptyCliPass99!',
+            password: 'Xk9$mQn2pL7#vR4wT8',
             callback: function (): void {
                 $installer = Services::installService(getShared: false);
                 $result    = $installer->install([
@@ -179,7 +179,7 @@ final class InstallCmsCommandTest extends CIUnitTestCase
                 $result    = $installer->install([
                     'username' => 'cli.wins.admin',
                     'email'    => 'cli.wins.admin@example.com',
-                    'password' => 'CliWinsPass99!',
+                    'password' => 'Xk9$mQn2pL7#vR4wT8',
                 ]);
 
                 $this->assertSame('fresh', $result['status']);
@@ -203,16 +203,16 @@ final class InstallCmsCommandTest extends CIUnitTestCase
         $installer->install([
             'username' => 'secret.admin',
             'email'    => 'secret.admin@example.com',
-            'password' => 'SuperSecretPass1!',
+            'password' => 'Xk9$mQn2pL7#vR4wT8',
         ]);
 
         $again = $installer->install([
             'username' => 'secret.admin',
             'email'    => 'secret.admin@example.com',
-            'password' => 'SuperSecretPass1!',
+            'password' => 'Xk9$mQn2pL7#vR4wT8',
         ]);
 
-        $this->assertStringNotContainsString('SuperSecretPass1!', $again['message']);
+        $this->assertStringNotContainsString('Xk9$mQn2pL7#vR4wT8', $again['message']);
         $this->assertStringNotContainsString('secret.admin@example.com', $again['message']);
         $this->assertStringNotContainsString('EMAIL_', $again['message']);
     }

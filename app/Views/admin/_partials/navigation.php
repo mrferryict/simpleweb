@@ -19,6 +19,7 @@ $items = [
     ['key' => 'media', 'label' => 'Media', 'url' => site_url('admin/media'), 'show' => true],
     ['key' => 'menus', 'label' => 'Menus', 'url' => site_url('admin/menus'), 'show' => true],
     ['key' => 'settings', 'label' => 'Settings', 'url' => site_url('admin/settings'), 'show' => true],
+    ['key' => 'users', 'label' => 'Users', 'url' => site_url('admin/users'), 'show' => $user?->can('user.manage') === true],
     ['key' => 'themes', 'label' => 'Themes', 'url' => site_url('admin/themes'), 'show' => $user?->can('theme.activate') === true],
     ['key' => 'audit', 'label' => 'Audit', 'url' => site_url('admin/audit'), 'show' => $user?->can('audit.view') === true],
 ];

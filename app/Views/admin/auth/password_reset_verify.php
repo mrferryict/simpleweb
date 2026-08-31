@@ -5,10 +5,14 @@ declare(strict_types=1);
 /**
  * Password reset verification — presentation only.
  *
- * @var string|null $error
- * @var string|null $success
- * @var string      $token
+ * @var string|null           $error
+ * @var array<string, string> $errors
+ * @var string|null           $success
+ * @var string                $token
  */
+$errors = $errors ?? [];
+$error  = $error ?? null;
+
 $pageTitle = 'Set new password';
 $skipLabel = 'Skip to set new password';
 echo view('admin/auth/_partials/document_start', compact('pageTitle', 'skipLabel'));
@@ -18,9 +22,9 @@ echo view('admin/auth/_partials/card_header', [
 ]);
 ?>
 
-            <?php if (! empty($error)) : ?>
+            <?php if ($error !== null && $error !== '') : ?>
                 <div class="admin-alert admin-alert--error" role="alert">
-                    <?= esc((string) $error) ?>
+                    <?= esc($error) ?>
                 </div>
             <?php endif; ?>
 
@@ -55,6 +59,24 @@ echo view('admin/auth/_partials/card_header', [
                         required
                         value=""
                     >
+                    <?php if (isset($errors['password'])) : ?>
+                        <p class="admin-field-error" role="alert"><?= esc($errors['password']) ?></p>
+                    <?php endif; ?>
+                </div>
+
+                <div class="admin-form-field">
+                    <label for="password_confirm"><?= esc('Confirm new password') ?></label>
+                    <input
+                        type="password"
+                        id="password_confirm"
+                        name="password_confirm"
+                        autocomplete="new-password"
+                        required
+                        value=""
+                    >
+                    <?php if (isset($errors['password_confirm'])) : ?>
+                        <p class="admin-field-error" role="alert"><?= esc($errors['password_confirm']) ?></p>
+                    <?php endif; ?>
                 </div>
 
                 <div class="admin-auth-form__actions">

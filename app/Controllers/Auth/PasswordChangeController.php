@@ -7,6 +7,7 @@ namespace App\Controllers\Auth;
 use App\Controllers\BaseController;
 use App\Enums\AuditEvent;
 use App\Services\Audit\AuditService;
+use App\Services\Security\PasswordPolicyService;
 use CodeIgniter\HTTP\RedirectResponse;
 use CodeIgniter\HTTP\ResponseInterface;
 use CodeIgniter\Shield\Authentication\Passwords;
@@ -121,9 +122,9 @@ class PasswordChangeController extends BaseController
         } elseif ($new !== $confirm) {
             $errors['password_confirm'] = 'Password confirmation does not match.';
         } elseif ($errors === []) {
-            $check = $this->passwords()->check($new, $user);
-            if (! $check->isOK()) {
-                $errors['password_new'] = (string) ($check->reason() ?? 'Password does not meet requirements.');
+            $reason = $this->passwordPolicy()->validatePassword($new, $user);
+            if ($reason !== null) {
+                $errors['password_new'] = $reason;
             }
         }
 
@@ -133,6 +134,11 @@ class PasswordChangeController extends BaseController
     private function passwords(): Passwords
     {
         return service('passwords');
+    }
+
+    private function passwordPolicy(): PasswordPolicyService
+    {
+        return service('passwordPolicyService');
     }
 
     private function auditService(): AuditService

@@ -36,16 +36,22 @@ use App\Services\ScheduledContentService;
 use App\Services\Demo\DemoContentService;
 use App\Services\Install\InstallService;
 use App\Services\Security\AuthThrottleService;
+use App\Services\Security\PasswordPolicyService;
+use App\Services\Security\PasswordResetEmailService;
 use App\Services\Security\PiiCipherService;
 use App\Services\Security\RichTextSanitizer;
+use App\Services\Security\SmtpPasswordResetEmailTransport;
 use App\Services\Security\UserEmailService;
 use App\Services\SettingService;
 use App\Services\TagService;
 use App\Services\Theme\ThemeService;
+use App\Services\UserAdminService;
 use CodeIgniter\Config\BaseService;
 use CodeIgniter\Settings\Config\Services as SettingsServices;
 use CodeIgniter\Settings\Settings;
+use Config\AuthGroups;
 use Config\AuthThrottle;
+use Config\Email as EmailConfig;
 use Config\EmailPii;
 use Config\Theme as ThemeConfig;
 
@@ -200,6 +206,57 @@ class Services extends BaseService
         return new UserEmailService(
             static::piiCipherService(getShared: true),
             db_connect(),
+        );
+    }
+
+    /**
+     * V2-003 Control Panel staff user management (ADR-027 P0-1).
+     */
+    public static function userAdminService(bool $getShared = true): UserAdminService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('userAdminService');
+        }
+
+        /** @var AuthGroups $authGroups */
+        $authGroups = config(AuthGroups::class);
+
+        return new UserAdminService(
+            db_connect(),
+            static::userEmailService(getShared: true),
+            static::auditService(getShared: true),
+            static::passwordPolicyService(getShared: true),
+            $authGroups,
+        );
+    }
+
+    /**
+     * V2-005 Shield password policy entry point (ADR-027 P0-3).
+     */
+    public static function passwordPolicyService(bool $getShared = true): PasswordPolicyService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('passwordPolicyService');
+        }
+
+        return new PasswordPolicyService(static::passwords(getShared: true));
+    }
+
+    /**
+     * V2-004 password-reset email delivery (ADR-027 P0-2).
+     */
+    public static function passwordResetEmailService(bool $getShared = true): PasswordResetEmailService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('passwordResetEmailService');
+        }
+
+        /** @var EmailConfig $emailConfig */
+        $emailConfig = config(EmailConfig::class);
+
+        return new PasswordResetEmailService(
+            static::settingService(getShared: true),
+            new SmtpPasswordResetEmailTransport($emailConfig),
         );
     }
 

@@ -38,10 +38,14 @@ If unexpected local source modifications appear, stop and resolve them before co
 
 ```bash
 git fetch --tags
-git checkout v1.1.6
+git checkout v2.0.0
 ```
 
-Replace `v1.1.6` with the release tag you intend to deploy. Prefer tagged releases over arbitrary branch tips. For example, an installation on **v1.1.1** can update to **v1.1.2** (or the latest **`v1.1.6`** distribution, which has the same application behavior as v1.1.2) by checking out that tag after backup.
+Replace `v2.0.0` with the release tag you intend to deploy. Prefer tagged releases over arbitrary branch tips.
+
+**Upgrading from V1.1.6 to V2.0.0:** This release requires **no database migration**. Do **not** run `cms:install` or `cms:demo` on an existing production site. Historical example: an installation on **v1.1.1** could previously update to **v1.1.2** or **v1.1.6** by checking out that tag after backup.
+
+See [v2.0.0 release notes](../releases/v2.0.0.md) for V2 CORE changes.
 
 ### 6. Install PHP dependencies
 
@@ -57,7 +61,9 @@ php spark migrate:status
 
 ### 8. Run pending migrations (if required)
 
-If pending migrations are shown and the release notes require them — and you have a verified backup:
+**v2.0.0:** No migration is required.
+
+If a future release adds migrations and the release notes require them — and you have a verified backup:
 
 ```bash
 php spark migrate
@@ -75,7 +81,7 @@ Confirm `.env` on the server was **not** overwritten by Git. Required secrets an
 - Control Panel: `https://YOUR-DOMAIN/cp`
 - Page and Post publish flows
 - Media upload
-- SMTP password recovery (if used)
+- SMTP password recovery (recommended for V2 reset email delivery)
 - Scheduler cron (`cms:scheduled-content`)
 
 ## Flow summary
@@ -101,6 +107,8 @@ Smoke test / and /cp
 ## Do not
 
 - Run `composer update` on production
+- Run `php spark cms:install` on an **already installed** site (upgrade uses Git + Composer only)
+- Run `php spark cms:demo` on production unless you explicitly want optional starter content
 - Commit secrets
 - Blindly `git pull` over a dirty tree with local hotfixes
 - Point the web root at the repository root

@@ -1,5 +1,7 @@
 # SMITE CMS — Admin User Guide
 
+**Versi panduan:** V2.0.0 CORE (user management, reset password email, kebijakan password Shield)
+
 Panduan ini ditujukan untuk **Admin website**, **Editor konten**, dan **staf/operator** yang mengelola isi website melalui Control Panel SMITE CMS.
 
 Anda **tidak** perlu memahami PHP, Git, Composer, SSH, atau database untuk pekerjaan sehari-hari di panduan ini.
@@ -18,7 +20,7 @@ Untuk instalasi server, update software CMS, backup, dan konfigurasi teknis, gun
 | **Editor** | Pages, Posts, kategori/tag, media, publikasi |
 | **Contributor** | Membuat Draft Post, mengedit Post milik sendiri, mengirim untuk review, media terbatas |
 
-Peran ditetapkan oleh administrator sistem saat akun dibuat. **V1 tidak menyediakan layar di Control Panel untuk mengubah peran atau permission.** Jika Anda membutuhkan akses tambahan, hubungi developer/administrator server.
+Peran ditetapkan oleh Admin melalui menu **Users** di Control Panel (V2). Editor dan Contributor tidak dapat mengelola akun pengguna.
 
 ### Dua jenis “update” — jangan dicampur
 
@@ -71,6 +73,7 @@ Menu sisi (sidebar) di Control Panel:
 - Media
 - Menus
 - Settings
+- Users *(hanya Admin dengan permission user.manage)*
 - Themes *(hanya jika akun Anda punya permission)*
 - Audit *(hanya jika akun Anda punya permission)*
 
@@ -120,6 +123,22 @@ Setelah password berhasil diganti, gunakan **password baru** untuk login berikut
 Gunakan tautan **Logout** di Control Panel, atau buka `/logout`.
 
 Pada komputer bersama, selalu logout setelah selesai.
+
+### Lupa password
+
+Jika Anda lupa password dan server sudah dikonfigurasi dengan SMTP:
+
+1. Buka `/cp/password-reset`.
+2. Masukkan **email** yang terdaftar pada akun Anda.
+3. Klik **Request reset**.
+4. Periksa kotak masuk email Anda (termasuk folder spam).
+5. Buka tautan reset dalam email.
+6. Di halaman **Set new password**, masukkan password baru dan **konfirmasi password**.
+7. Setelah berhasil, kembali ke `/cp` dan login dengan password baru.
+
+Pesan setelah permintaan reset selalu sama, baik email dikenali maupun tidak — ini melindungi privasi akun.
+
+Jika email tidak sampai, hubungi administrator server (SMTP mungkin belum dikonfigurasi).
 
 ---
 
@@ -469,7 +488,60 @@ Audit **tidak** menampilkan password, token, atau secret.
 
 ---
 
-## 14. Content Lifecycle
+## 14. Managing Users
+
+Menu **Users** → `/admin/users` *(permission: `user.manage` — hanya Admin)*
+
+Fitur ini memungkinkan Admin mengelola akun staf **Editor** dan **Contributor** tanpa bantuan developer/CLI.
+
+### Siapa yang dapat mengelola pengguna?
+
+Hanya akun **Admin** dengan permission `user.manage`. Editor dan Contributor **tidak** melihat menu Users dan **tidak** dapat membuka halaman manajemen pengguna.
+
+### Membuat akun staf
+
+1. Buka **Users** → klik **Create User**.
+2. Isi **Username** (huruf kecil, angka, titik; 3–30 karakter).
+3. Isi **Email** (disimpan terenkripsi di database).
+4. Pilih **Role**: **Editor** atau **Contributor** (default: Contributor).
+5. Centang **Active** jika akun harus bisa login segera.
+6. Tetapkan **password awal**; pengguna akan diminta mengganti password saat login pertama (sama seperti Admin setelah `cms:install`).
+7. Klik **Create user**.
+
+### Mengedit akun staf
+
+1. Di daftar Users, klik **Edit** pada baris pengguna.
+2. Anda dapat mengubah email, role (Editor ↔ Contributor), dan status aktif.
+3. **Password tidak diubah** dari form ini — pengguna mengganti password melalui `/cp/password-change` setelah login, atau melalui alur reset password jika tersedia.
+
+### Aktifkan / nonaktifkan akun
+
+- **Deactivate** — akun tidak dapat login; data akun tetap ada.
+- **Activate** — mengaktifkan kembali akun yang dinonaktifkan.
+
+Perubahan status dicatat di Audit Trail (`USER_ACTIVATED` / `USER_DEACTIVATED`).
+
+### Batasan peran (single-Admin)
+
+SMITE CMS mengharuskan **tepat satu akun Admin** yang dapat digunakan:
+
+- Form **tidak** menawarkan peran Admin untuk akun baru.
+- Akun Editor/Contributor **tidak dapat dipromosikan** menjadi Admin dari UI ini.
+- Akun Admin **tidak dapat dinonaktifkan** jika ia satu-satunya Admin.
+- Peran Admin **tidak dapat diubah** melalui form edit.
+
+Jika database berisi lebih dari satu Admin (data lama), sistem menampilkan peringatan di halaman Users tetapi **tidak** memperbaiki data secara otomatis.
+
+### Password
+
+- Password awal ditetapkan Admin saat membuat akun.
+- Semua pengaturan password (instalasi, pergantian wajib, reset, pembuatan akun staf) mengikuti **kebijakan Shield** yang sama — aturan teknis ada di konfigurasi server (`app/Config/Auth.php`), bukan aturan terpisah di aplikasi.
+- Password **tidak boleh** mengandung bagian username atau email Anda (validator Shield).
+- Password **tidak** ditampilkan kembali di halaman setelah submit, **tidak** dicatat di Audit Trail, dan **tidak** muncul di daftar pengguna.
+
+---
+
+## 15. Content Lifecycle
 
 ### Page
 
@@ -502,7 +574,7 @@ Tombol yang Anda lihat bergantung pada **status saat ini** dan **peran/permissio
 
 ---
 
-## 15. Permission — jika tombol tidak muncul
+## 16. Permission — jika tombol tidak muncul
 
 | Peran | Ringkasan akses |
 |---|---|
@@ -516,7 +588,7 @@ V1 **tidak** menyediakan UI manajemen user/role di Control Panel.
 
 ---
 
-## 16. Practical Recipes
+## 17. Practical Recipes
 
 ### Recipe A — Membuat halaman “Tentang Kami”
 
@@ -567,7 +639,7 @@ V1 **tidak** menyediakan UI manajemen user/role di Control Panel.
 
 ---
 
-## 17. Demo / Starter Content
+## 18. Demo / Starter Content
 
 Instalasi baru (`cms:install`) menghasilkan CMS siap pakai dengan Theme 2026, **tanpa** Page atau Post.
 
@@ -590,7 +662,7 @@ Perintah ini menambahkan konten contoh:
 
 ---
 
-## 18. Common Mistakes
+## 19. Common Mistakes
 
 ### “Saya membuat Page tetapi tidak muncul di menu”
 
@@ -622,7 +694,7 @@ Itu update **software**, bukan update konten. Lihat [UPDATE.md](UPDATE.md) dan h
 
 ---
 
-## 19. Security
+## 20. Security
 
 - Jangan membagikan password Control Panel.
 - Gunakan password kuat; ganti password awal instalasi segera.
@@ -634,7 +706,7 @@ Itu update **software**, bukan update konten. Lihat [UPDATE.md](UPDATE.md) dan h
 
 ---
 
-## 20. Jika Membutuhkan Bantuan Developer
+## 21. Jika Membutuhkan Bantuan Developer
 
 Hubungi developer/server administrator untuk:
 
@@ -648,7 +720,7 @@ Hubungi developer/server administrator untuk:
 
 ---
 
-## 21. Dokumentasi Lain
+## 22. Dokumentasi Lain
 
 | Dokumen | Untuk siapa |
 |---|---|

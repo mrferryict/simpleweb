@@ -29,7 +29,7 @@ Prepare server
 - SMTP capability (recommended for password recovery)
 - HTTPS (required for production)
 
-SMITE CMS V1 does **not** require Docker, Redis, or a queue worker.
+SMITE CMS V2 does **not** require Docker, Redis, or a queue worker.
 
 ## 2. Prepare domain and DNS
 
@@ -53,10 +53,16 @@ Prefer the latest documented release tag over an arbitrary branch tip:
 
 ```bash
 git fetch --tags
-git checkout v1.1.6
+git checkout v2.0.0
 ```
 
-`v1.1.6` is the current repository distribution. Application behavior is unchanged from **`v1.1.2`**; `v1.1.6` adds polished Control Panel authentication screens. See [README.md](../../README.md#release-history-v1) for the release history.
+Or clone directly:
+
+```bash
+git clone --branch v2.0.0 <YOUR_GITHUB_REPO_URL> smite-cms
+```
+
+**`v2.0.0`** is the current repository distribution (V2 CORE). For the frozen V1 distribution, see tag **`v1.1.6`** and [README.md](../../README.md#release-history). Release notes: [docs/releases/v2.0.0.md](../releases/v2.0.0.md).
 
 ## 6. Install PHP dependencies (production)
 
@@ -120,7 +126,7 @@ cms.install.admin_email = 'admin@example.com'
 cms.install.admin_password = 'YOUR_SECURE_PASSWORD'
 ```
 
-Choose a unique password. Replace `admin@example.com` with a real address you control.
+Choose a unique password that meets the Shield password policy configured in the application (see `app/Config/Auth.php`). The password must not contain obvious fragments of the chosen username or email address. Replace `admin@example.com` with a real address you control.
 
 ### Option B — CLI flags
 

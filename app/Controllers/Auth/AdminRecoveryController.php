@@ -8,6 +8,7 @@ use App\Controllers\BaseController;
 use App\Enums\AuditEvent;
 use App\Services\Audit\AuditService;
 use App\Services\Security\AuthThrottleService;
+use App\Services\Security\PasswordPolicyService;
 use CodeIgniter\HTTP\ResponseInterface;
 use CodeIgniter\Shield\Entities\User;
 use CodeIgniter\Shield\Models\UserModel;
@@ -43,10 +44,12 @@ class AdminRecoveryController extends BaseController
         $skeyPost     = $this->request->getPost('skey');
         $usernamePost = $this->request->getPost('username');
         $passwordPost = $this->request->getPost('password');
+        $confirmPost  = $this->request->getPost('password_confirm');
 
         $skey     = is_string($skeyPost) ? $skeyPost : '';
         $username = is_string($usernamePost) ? strtolower(trim($usernamePost)) : '';
         $password = is_string($passwordPost) ? $passwordPost : '';
+        $confirm  = is_string($confirmPost) ? $confirmPost : '';
 
         $expected = (string) env('skey', '');
         if ($expected === '' || $skey === '' || ! hash_equals($expected, $skey)) {
@@ -56,9 +59,16 @@ class AdminRecoveryController extends BaseController
             ]);
         }
 
-        if ($username === '' || $password === '') {
+        if ($username === '' || $password === '' || $confirm === '') {
             return view('admin/auth/admin_recovery', [
                 'error'   => self::GENERIC,
+                'success' => null,
+            ]);
+        }
+
+        if ($password !== $confirm) {
+            return view('admin/auth/admin_recovery', [
+                'error'   => 'Password confirmation does not match.',
                 'success' => null,
             ]);
         }
@@ -71,6 +81,14 @@ class AdminRecoveryController extends BaseController
             if ($user === null || ! $user->inGroup('admin')) {
                 return view('admin/auth/admin_recovery', [
                     'error'   => self::GENERIC,
+                    'success' => null,
+                ]);
+            }
+
+            $policyError = $this->passwordPolicy()->validatePassword($password, $user);
+            if ($policyError !== null) {
+                return view('admin/auth/admin_recovery', [
+                    'error'   => $policyError,
                     'success' => null,
                 ]);
             }
@@ -118,5 +136,10 @@ class AdminRecoveryController extends BaseController
     private function auditService(): AuditService
     {
         return service('auditService');
+    }
+
+    private function passwordPolicy(): PasswordPolicyService
+    {
+        return service('passwordPolicyService');
     }
 }

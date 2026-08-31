@@ -8,6 +8,8 @@ use App\Controllers\BaseController;
 use App\Enums\AuditEvent;
 use App\Services\Audit\AuditService;
 use App\Services\Security\AuthThrottleService;
+use App\Services\Security\PasswordPolicyService;
+use App\Services\Security\PasswordResetEmailService;
 use App\Services\Security\UserEmailService;
 use CodeIgniter\HTTP\ResponseInterface;
 use CodeIgniter\Shield\Entities\User;
@@ -52,7 +54,16 @@ class PasswordResetController extends BaseController
             if ($userId !== null) {
                 $token = bin2hex(random_bytes(32));
                 cache()->save('auth.reset.' . $token, $userId, self::TOKEN_TTL);
-                // SMTP delivery is environment-dependent; token is issued for verify step.
+
+                $recipientEmail = $this->userEmail()->getDecryptedEmail($userId);
+                if ($recipientEmail !== null) {
+                    (void) $this->passwordResetEmailService()->sendResetEmail(
+                        $recipientEmail,
+                        $token,
+                        self::TOKEN_TTL,
+                    );
+                }
+
                 (void) $this->auditService()->append(
                     AuditEvent::PasswordReset,
                     null,
@@ -76,6 +87,7 @@ class PasswordResetController extends BaseController
     {
         return view('admin/auth/password_reset_verify', [
             'error'   => null,
+            'errors'  => [],
             'success' => null,
             'token'   => (string) ($this->request->getGet('token') ?? ''),
         ]);
@@ -87,6 +99,7 @@ class PasswordResetController extends BaseController
         if (! $this->authThrottle()->allow('password_reset_verify', $ip)) {
             return view('admin/auth/password_reset_verify', [
                 'error'   => self::THROTTLED,
+                'errors'  => [],
                 'success' => null,
                 'token'   => '',
             ]);
@@ -94,14 +107,17 @@ class PasswordResetController extends BaseController
 
         $tokenPost    = $this->request->getPost('token');
         $passwordPost = $this->request->getPost('password');
+        $confirmPost  = $this->request->getPost('password_confirm');
         $token        = is_string($tokenPost) ? trim($tokenPost) : '';
         $password     = is_string($passwordPost) ? $passwordPost : '';
+        $confirm      = is_string($confirmPost) ? $confirmPost : '';
 
-        if ($token === '' || $password === '') {
+        if ($token === '') {
             return view('admin/auth/password_reset_verify', [
                 'error'   => self::GENERIC,
+                'errors'  => [],
                 'success' => null,
-                'token'   => $token,
+                'token'   => '',
             ]);
         }
 
@@ -110,6 +126,7 @@ class PasswordResetController extends BaseController
             if (! is_int($userId) && ! (is_string($userId) && ctype_digit($userId))) {
                 return view('admin/auth/password_reset_verify', [
                     'error'   => self::GENERIC,
+                    'errors'  => [],
                     'success' => null,
                     'token'   => '',
                 ]);
@@ -119,19 +136,26 @@ class PasswordResetController extends BaseController
             /** @var UserModel $users */
             $users = model(UserModel::class);
             $user  = $users->find($userId);
-            if ($user === null) {
+            if (! $user instanceof User) {
                 return view('admin/auth/password_reset_verify', [
                     'error'   => self::GENERIC,
+                    'errors'  => [],
                     'success' => null,
                     'token'   => '',
                 ]);
             }
 
-            if (! $user instanceof User) {
+            $errors = $this->passwordPolicy()->validateNewPasswordWithConfirmation(
+                $password,
+                $confirm,
+                $user,
+            );
+            if ($errors !== []) {
                 return view('admin/auth/password_reset_verify', [
-                    'error'   => self::GENERIC,
+                    'error'   => null,
+                    'errors'  => $errors,
                     'success' => null,
-                    'token'   => '',
+                    'token'   => $token,
                 ]);
             }
 
@@ -153,13 +177,15 @@ class PasswordResetController extends BaseController
 
             return view('admin/auth/password_reset_verify', [
                 'error'   => self::GENERIC,
+                'errors'  => [],
                 'success' => null,
-                'token'   => '',
+                'token'   => $token,
             ]);
         }
 
         return view('admin/auth/password_reset_verify', [
             'error'   => null,
+            'errors'  => [],
             'success' => 'Password updated.',
             'token'   => '',
         ]);
@@ -178,5 +204,15 @@ class PasswordResetController extends BaseController
     private function auditService(): AuditService
     {
         return service('auditService');
+    }
+
+    private function passwordResetEmailService(): PasswordResetEmailService
+    {
+        return service('passwordResetEmailService');
+    }
+
+    private function passwordPolicy(): PasswordPolicyService
+    {
+        return service('passwordPolicyService');
     }
 }

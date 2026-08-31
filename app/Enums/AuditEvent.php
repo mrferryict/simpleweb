@@ -44,4 +44,5 @@ enum AuditEvent: string
     case UserCreated      = 'USER_CREATED';
     case UserActivated    = 'USER_ACTIVATED';
     case UserDeactivated  = 'USER_DEACTIVATED';
+    case UserRoleChanged  = 'USER_ROLE_CHANGED';
 }

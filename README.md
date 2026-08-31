@@ -3,11 +3,21 @@
 SMITE CMS is a single-organization, single-website public Content Management System
 built on CodeIgniter 4. It is not a website builder.
 
-Official application release: **v1.1.2**
+**Latest repository distribution:** **v2.0.0** (V2 CORE — user management, password-reset email, password policy consistency)
 
-Latest repository distribution: **v1.1.6** (presentation-only maintenance; authentication UI polish; application behavior unchanged from v1.1.2)
+**V2 application release:** **v2.0.0**
 
-## Release history (V1)
+**V1 historical baseline:** **v1.1.6** (frozen V1 distribution; application behavior baseline **v1.1.2**)
+
+## Release history
+
+### V2
+
+| Tag | Summary |
+|---|---|
+| `v2.0.0` | V2 CORE: user management UI, SMTP password-reset email, Shield password policy on all password-setting paths |
+
+### V1 (frozen)
 
 | Tag | Summary |
 |---|---|
@@ -20,7 +30,9 @@ Latest repository distribution: **v1.1.6** (presentation-only maintenance; authe
 | `v1.1.5` | Admin User Guide and documentation integration |
 | `v1.1.6` | Authentication UI polish (login, password change, password reset) |
 
-**Which tag should I clone?** Use **`v1.1.6`** — it is the latest distribution. Its application behavior is the same as **`v1.1.2`**; `v1.1.6` adds polished Control Panel authentication screens only.
+**Which tag should I clone?** Use **`v2.0.0`** for new installations and updates. Use **`v1.1.6`** only when maintaining a frozen V1 deployment or reviewing historical V1 behavior.
+
+Release notes: [docs/releases/v2.0.0.md](docs/releases/v2.0.0.md)
 
 ## Requirements
 
@@ -34,12 +46,12 @@ Latest repository distribution: **v1.1.6** (presentation-only maintenance; authe
 - SMTP (password recovery / notifications)
 - Writable application storage for cache, session, and uploads
 - **File cache** (`FileHandler` under `writable/cache`) — no Redis required
-- **No Docker**, **no Redis**, **no queue workers** required for V1
+- **No Docker**, **no Redis**, **no queue workers** required
 
 ## New installation
 
-1. Clone this repository (use the **`v1.1.6`** tag — see [Release history](#release-history-v1) above).
-2. Copy `.env.example` to `.env` and fill in required values (database, security keys, Admin credentials, **auth throttle**).
+1. Clone this repository (use the **`v2.0.0`** tag — see [Release history](#release-history) above).
+2. Copy `.env.example` to `.env` and fill in required values (database, security keys, Admin credentials, **auth throttle**, SMTP if using password reset email).
 3. Follow **[Client Installation](docs/client/INSTALLATION.md)** end-to-end.
 
 After install:
@@ -47,17 +59,19 @@ After install:
 - Public site: `https://YOUR-DOMAIN/`
 - Control Panel: `https://YOUR-DOMAIN/cp`
 
-First Admin credentials are **never hard-coded**. Provide them via `.env` or CLI flags at `cms:install` time. See the installation guide.
+First Admin credentials are **never hard-coded**. Provide them via `.env` or CLI flags at `cms:install` time. See the installation guide. First login requires a mandatory password change (`force_reset`).
 
 Optional starter content (generic demo Pages and a sample Post) is available after install via `php spark cms:demo` — see [First run](docs/client/FIRST-RUN.md).
 
-For day-to-day website and content management (Pages, Posts, Media, Menus), operators should use the **[Admin User Guide](docs/client/ADMIN-USER-GUIDE.md)**.
+For day-to-day website and content management (Pages, Posts, Media, Menus, Users), operators should use the **[Admin User Guide](docs/client/ADMIN-USER-GUIDE.md)**.
 
 ## Updating an existing installation
 
 Follow **[Client Update](docs/client/UPDATE.md)**.
 
 Do **not** run `composer update` in production. Use `composer install --no-dev` from the lockfile.
+
+Upgrading from **v1.1.6** to **v2.0.0** requires **no database migration**.
 
 ## Client documentation
 
@@ -78,6 +92,7 @@ Do **not** run `composer update` in production. Use `composer install --no-dev` 
 |---|---|
 | [Developer Client Deployment](docs/DEVELOPER-CLIENT-DEPLOYMENT.md) | SOP for onboarding a new client |
 | [Theme Development Guide](docs/05-Theme-Development-Guide.md) | Quick-start for creating a new Theme from Theme 2026 |
+| [v2.0.0 Release Notes](docs/releases/v2.0.0.md) | V2 CORE release summary |
 
 Internal architecture / product docs remain under [`docs/`](docs/) and [`adr/`](adr/).
 

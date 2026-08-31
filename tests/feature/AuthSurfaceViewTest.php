@@ -121,6 +121,7 @@ final class AuthSurfaceViewTest extends CIUnitTestCase
         $this->assertStringContainsString('Set new password', $body);
         $this->assertStringContainsString('name="token"', $body);
         $this->assertStringContainsString('name="password"', $body);
+        $this->assertStringContainsString('name="password_confirm"', $body);
         $this->assertStringContainsString('value="sample-token-value"', $body);
         $this->assertStringContainsString('csrf_test_name', $body);
         $this->assertStringContainsString('action="' . site_url('cp/password-reset/verify') . '"', $body);
@@ -130,8 +131,9 @@ final class AuthSurfaceViewTest extends CIUnitTestCase
     public function testPasswordResetVerifyDoesNotEchoSubmittedPassword(): void
     {
         $result = $this->postWithCsrf('cp/password-reset/verify', [
-            'token'    => 'invalid-token',
-            'password' => 'secret-new-password-value',
+            'token'            => 'invalid-token',
+            'password'         => 'secret-new-password-value',
+            'password_confirm' => 'secret-new-password-value',
         ]);
 
         $body = (string) $result->response()->getBody();

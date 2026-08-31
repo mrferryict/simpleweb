@@ -161,9 +161,10 @@ final class SecurityHardeningTest extends CIUnitTestCase
         $this->injectThrottle(capacity: 5);
 
         $result = $this->withRequest($this->postRequest([
-                'skey'     => 'wrong-skey-value',
-                'username' => 'admin',
-                'password' => 'NewPass123!',
+                'skey'             => 'wrong-skey-value',
+                'username'         => 'admin',
+                'password'         => 'NewPass123!',
+                'password_confirm' => 'NewPass123!',
             ]))
             ->controller(AdminRecoveryController::class)
             ->execute('recover');
