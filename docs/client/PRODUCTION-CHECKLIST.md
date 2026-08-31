@@ -66,3 +66,9 @@ Use before go-live and after major changes.
 - [ ] `writable/uploads/documents/` included in backup
 - [ ] Database and both upload locations backed up as a **set**
 - [ ] Restore procedure covers both upload locations and is understood or tested on non-production
+
+## Related documentation
+
+- [FIRST-RUN.md](FIRST-RUN.md) — first login and initial setup
+- [ADMIN-USER-GUIDE.md](ADMIN-USER-GUIDE.md) — day-to-day content management for operators (Admin, Editor, Contributor)
+- [ADMIN-CONTROL-PANEL.md](ADMIN-CONTROL-PANEL.md) — concise Control Panel reference

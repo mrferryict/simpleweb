@@ -11,7 +11,7 @@ This runbook orchestrates a production deployment. It does not replace the canon
 
 Provide a repeatable SOP for deploying SMITE CMS to a new client's server, configuring security, completing first-login hardening, optionally loading demo content, and handing over a verified installation.
 
-**Current distribution:** clone tag **`v1.1.4`** (latest repository distribution; application code identical to **`v1.1.2`**).
+**Current distribution:** clone tag **`v1.1.5`** (latest repository distribution; application code identical to **`v1.1.2`**).
 
 ---
 
@@ -94,11 +94,11 @@ Match [README.md](../README.md#requirements):
 Clone the recommended release tag:
 
 ```bash
-git clone --branch v1.1.4 <repository-url> smite-cms
+git clone --branch v1.1.5 <repository-url> smite-cms
 cd smite-cms
 ```
 
-Or follow [INSTALLATION.md](client/INSTALLATION.md) §5 for `git fetch --tags` / `git checkout v1.1.4`.
+Or follow [INSTALLATION.md](client/INSTALLATION.md) §5 for `git fetch --tags` / `git checkout v1.1.5`.
 
 Install production dependencies:
 
@@ -376,9 +376,9 @@ Transfer securely (password manager or encrypted channel — never email/plain c
 - [ ] Scheduler/cron confirmed
 - [ ] Backup procedure explained
 - [ ] Restore procedure documented
-- [ ] Current release recorded (`v1.1.4` distribution / `v1.1.2` application baseline)
+- [ ] Current release recorded (`v1.1.5` distribution / `v1.1.2` application baseline)
 
-Provide links to [FIRST-RUN.md](client/FIRST-RUN.md) and [ADMIN-CONTROL-PANEL.md](client/ADMIN-CONTROL-PANEL.md).
+Provide links to [FIRST-RUN.md](client/FIRST-RUN.md), [ADMIN-CONTROL-PANEL.md](client/ADMIN-CONTROL-PANEL.md), and **[ADMIN-USER-GUIDE.md](client/ADMIN-USER-GUIDE.md)** (primary handover document for operators managing day-to-day content).
 
 ---
 
@@ -387,7 +387,7 @@ Provide links to [FIRST-RUN.md](client/FIRST-RUN.md) and [ADMIN-CONTROL-PANEL.md
 Record in your internal client registry:
 
 ```text
-Distribution tag: v1.1.4
+Distribution tag: v1.1.5
 Application baseline: v1.1.2
 Deploy date:
 Git commit:
@@ -441,6 +441,7 @@ No automated deployment tooling is assumed.
 | [UPDATE.md](client/UPDATE.md) | Production updates |
 | [BACKUP-RESTORE.md](client/BACKUP-RESTORE.md) | Backup pairing |
 | [PRODUCTION-CHECKLIST.md](client/PRODUCTION-CHECKLIST.md) | Go-live checklist |
-| [ADMIN-CONTROL-PANEL.md](client/ADMIN-CONTROL-PANEL.md) | Control Panel overview |
+| [ADMIN-CONTROL-PANEL.md](client/ADMIN-CONTROL-PANEL.md) | Control Panel area/route reference |
+| [ADMIN-USER-GUIDE.md](client/ADMIN-USER-GUIDE.md) | **Operator handover** — daily content management |
 | [05-Theme-Template-Architecture.md](05-Theme-Template-Architecture.md) | Theme architecture |
 | [05-Theme-Development-Guide.md](05-Theme-Development-Guide.md) | New Theme quick-start |

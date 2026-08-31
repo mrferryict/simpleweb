@@ -38,10 +38,10 @@ If unexpected local source modifications appear, stop and resolve them before co
 
 ```bash
 git fetch --tags
-git checkout v1.1.4
+git checkout v1.1.5
 ```
 
-Replace `v1.1.4` with the release tag you intend to deploy. Prefer tagged releases over arbitrary branch tips. For example, an installation on **v1.1.1** can update to **v1.1.2** (or the latest **`v1.1.4`** documentation distribution, which has the same application code as v1.1.2) by checking out that tag after backup.
+Replace `v1.1.5` with the release tag you intend to deploy. Prefer tagged releases over arbitrary branch tips. For example, an installation on **v1.1.1** can update to **v1.1.2** (or the latest **`v1.1.5`** documentation distribution, which has the same application code as v1.1.2) by checking out that tag after backup.
 
 ### 6. Install PHP dependencies
 

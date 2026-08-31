@@ -146,3 +146,9 @@ Configure through the Control Panel — do not edit application source for CMS s
 - [ ] Publish a Post under `/news/...`
 - [ ] Upload an image and a document
 - [ ] `/sitemap.xml` and `/robots.txt` respond
+
+## Day-to-day content management
+
+After first login, password change, and initial site configuration, staff who manage Pages, Posts, Media, and Menus should use **[ADMIN-USER-GUIDE.md](ADMIN-USER-GUIDE.md)** for practical step-by-step instructions.
+
+That guide is for **operators** (Admin, Editor, Contributor). Server installation, CMS updates, and backup remain developer/server tasks — see [INSTALLATION.md](INSTALLATION.md), [UPDATE.md](UPDATE.md), and [BACKUP-RESTORE.md](BACKUP-RESTORE.md).

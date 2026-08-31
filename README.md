@@ -5,7 +5,7 @@ built on CodeIgniter 4. It is not a website builder.
 
 Official application release: **v1.1.2**
 
-Latest repository distribution: **v1.1.4** (documentation-only; application code identical to v1.1.2)
+Latest repository distribution: **v1.1.5** (documentation-only; application code identical to v1.1.2)
 
 ## Release history (V1)
 
@@ -16,9 +16,10 @@ Latest repository distribution: **v1.1.4** (documentation-only; application code
 | `v1.1.1` | First-login password reset enforcement |
 | `v1.1.2` | Backup path correction + application baseline |
 | `v1.1.3` | Documentation alignment (client docs with v1.1.2) |
-| `v1.1.4` | Final V1 documentation release |
+| `v1.1.4` | Final V1 deployment and developer documentation |
+| `v1.1.5` | Admin User Guide and documentation integration |
 
-**Which tag should I clone?** Use **`v1.1.4`** — it is the latest distribution and includes the most current client documentation. Its application behavior is the same as **`v1.1.2`**. Do not expect new application features in `v1.1.4`.
+**Which tag should I clone?** Use **`v1.1.5`** — it is the latest distribution and includes the most current client documentation. Its application behavior is the same as **`v1.1.2`**. Do not expect new application features in `v1.1.5`.
 
 ## Requirements
 
@@ -36,7 +37,7 @@ Latest repository distribution: **v1.1.4** (documentation-only; application code
 
 ## New installation
 
-1. Clone this repository (use the **`v1.1.4`** tag — see [Release history](#release-history-v1) above).
+1. Clone this repository (use the **`v1.1.5`** tag — see [Release history](#release-history-v1) above).
 2. Copy `.env.example` to `.env` and fill in required values (database, security keys, Admin credentials, **auth throttle**).
 3. Follow **[Client Installation](docs/client/INSTALLATION.md)** end-to-end.
 
@@ -49,6 +50,8 @@ First Admin credentials are **never hard-coded**. Provide them via `.env` or CLI
 
 Optional starter content (generic demo Pages and a sample Post) is available after install via `php spark cms:demo` — see [First run](docs/client/FIRST-RUN.md).
 
+For day-to-day website and content management (Pages, Posts, Media, Menus), operators should use the **[Admin User Guide](docs/client/ADMIN-USER-GUIDE.md)**.
+
 ## Updating an existing installation
 
 Follow **[Client Update](docs/client/UPDATE.md)**.
@@ -59,6 +62,8 @@ Do **not** run `composer update` in production. Use `composer install --no-dev` 
 
 | Document | Purpose |
 |---|---|
+| [Admin User Guide](docs/client/ADMIN-USER-GUIDE.md) | **Daily website/content operation** for Admin, Editor, and Contributor (operator guide) |
+| [Control Panel Reference](docs/client/ADMIN-CONTROL-PANEL.md) | Concise Control Panel area and route overview |
 | [Client Installation](docs/client/INSTALLATION.md) | New server install |
 | [Client First Run](docs/client/FIRST-RUN.md) | First login and site setup |
 | [Client Configuration](docs/client/CONFIGURATION.md) | `.env` and operational config |

@@ -1,6 +1,8 @@
 # SMITE CMS — Control Panel
 
-This document describes the **Admin Control Panel** introduced and polished in TH-006 through TH-010. It is a client-facing overview, not a feature manual for every screen.
+This document describes the **Admin Control Panel** introduced and polished in TH-006 through TH-010. It is a **concise reference** to areas, routes, and permissions — not a step-by-step operator manual.
+
+For practical day-to-day instructions (creating Pages and Posts, uploading Media, managing Menus, and similar tasks), see **[ADMIN-USER-GUIDE.md](ADMIN-USER-GUIDE.md)**.
 
 ## Public site vs Control Panel
 
@@ -114,6 +116,7 @@ Verified by automated tests and view inspection (TH-011). Browser visual QA was 
 
 ## Related documentation
 
+- [ADMIN-USER-GUIDE.md](ADMIN-USER-GUIDE.md) — practical operator guide for daily content management
 - [FIRST-RUN.md](FIRST-RUN.md) — post-install flow including `/cp` login
 - [INSTALLATION.md](INSTALLATION.md) — server setup and `cms:install`
 - [CONFIGURATION.md](CONFIGURATION.md) — `.env` and throttle configuration
