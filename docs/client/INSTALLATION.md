@@ -53,10 +53,10 @@ Prefer the latest documented release tag over an arbitrary branch tip:
 
 ```bash
 git fetch --tags
-git checkout v1.1.5
+git checkout v1.1.6
 ```
 
-`v1.1.5` is the current repository distribution. Its application code is identical to **`v1.1.2`**. See [README.md](../../README.md#release-history-v1) for the release history.
+`v1.1.6` is the current repository distribution. Application behavior is unchanged from **`v1.1.2`**; `v1.1.6` adds polished Control Panel authentication screens. See [README.md](../../README.md#release-history-v1) for the release history.
 
 ## 6. Install PHP dependencies (production)
 

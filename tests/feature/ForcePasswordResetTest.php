@@ -133,7 +133,9 @@ final class ForcePasswordResetTest extends CIUnitTestCase
         $body = (string) $result->response()->getBody();
         $this->assertStringContainsString('Change your password', $body);
         $this->assertStringContainsString('name="password_new"', $body);
-        $this->assertStringNotContainsString('admin-shell.css', $body);
+        $this->assertStringContainsString('auth.css', $body);
+        $this->assertStringNotContainsString('admin-sidebar', $body);
+        $this->assertStringNotContainsString('admin-layout', $body);
     }
 
     public function testPasswordChangeClearsForceResetAndAllowsAdmin(): void

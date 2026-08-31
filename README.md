@@ -5,7 +5,7 @@ built on CodeIgniter 4. It is not a website builder.
 
 Official application release: **v1.1.2**
 
-Latest repository distribution: **v1.1.5** (documentation-only; application code identical to v1.1.2)
+Latest repository distribution: **v1.1.6** (presentation-only maintenance; authentication UI polish; application behavior unchanged from v1.1.2)
 
 ## Release history (V1)
 
@@ -18,8 +18,9 @@ Latest repository distribution: **v1.1.5** (documentation-only; application code
 | `v1.1.3` | Documentation alignment (client docs with v1.1.2) |
 | `v1.1.4` | Final V1 deployment and developer documentation |
 | `v1.1.5` | Admin User Guide and documentation integration |
+| `v1.1.6` | Authentication UI polish (login, password change, password reset) |
 
-**Which tag should I clone?** Use **`v1.1.5`** — it is the latest distribution and includes the most current client documentation. Its application behavior is the same as **`v1.1.2`**. Do not expect new application features in `v1.1.5`.
+**Which tag should I clone?** Use **`v1.1.6`** — it is the latest distribution. Its application behavior is the same as **`v1.1.2`**; `v1.1.6` adds polished Control Panel authentication screens only.
 
 ## Requirements
 
@@ -37,7 +38,7 @@ Latest repository distribution: **v1.1.5** (documentation-only; application code
 
 ## New installation
 
-1. Clone this repository (use the **`v1.1.5`** tag — see [Release history](#release-history-v1) above).
+1. Clone this repository (use the **`v1.1.6`** tag — see [Release history](#release-history-v1) above).
 2. Copy `.env.example` to `.env` and fill in required values (database, security keys, Admin credentials, **auth throttle**).
 3. Follow **[Client Installation](docs/client/INSTALLATION.md)** end-to-end.
 

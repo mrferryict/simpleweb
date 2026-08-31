@@ -1,31 +1,67 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title><?= esc('Set new password') ?></title>
-</head>
-<body>
-<main>
-    <h1><?= esc('Set new password') ?></h1>
-    <?php if (! empty($error)): ?>
-        <p role="alert"><?= esc((string) $error) ?></p>
-    <?php endif; ?>
-    <?php if (! empty($success)): ?>
-        <p><?= esc((string) $success) ?></p>
-    <?php endif; ?>
-    <form method="post" action="<?= site_url('cp/password-reset/verify') ?>">
-        <?= csrf_field() ?>
-        <div>
-            <label for="token"><?= esc('Token') ?></label>
-            <input type="text" id="token" name="token" value="<?= esc((string) $token, 'attr') ?>" autocomplete="off" required>
-        </div>
-        <div>
-            <label for="password"><?= esc('New password') ?></label>
-            <input type="password" id="password" name="password" autocomplete="new-password" required>
-        </div>
-        <button type="submit"><?= esc('Update password') ?></button>
-    </form>
-</main>
-</body>
-</html>
+<?php
+
+declare(strict_types=1);
+
+/**
+ * Password reset verification — presentation only.
+ *
+ * @var string|null $error
+ * @var string|null $success
+ * @var string      $token
+ */
+$pageTitle = 'Set new password';
+$skipLabel = 'Skip to set new password';
+echo view('admin/auth/_partials/document_start', compact('pageTitle', 'skipLabel'));
+echo view('admin/auth/_partials/card_header', [
+    'cardTitle' => 'Set new password',
+    'cardLead'  => 'Enter your reset token and choose a new password.',
+]);
+?>
+
+            <?php if (! empty($error)) : ?>
+                <div class="admin-alert admin-alert--error" role="alert">
+                    <?= esc((string) $error) ?>
+                </div>
+            <?php endif; ?>
+
+            <?php if (! empty($success)) : ?>
+                <div class="admin-alert admin-alert--success" role="status">
+                    <?= esc((string) $success) ?>
+                </div>
+            <?php endif; ?>
+
+            <form class="admin-auth-form" method="post" action="<?= site_url('cp/password-reset/verify') ?>">
+                <?= csrf_field() ?>
+
+                <div class="admin-form-field">
+                    <label for="token"><?= esc('Token') ?></label>
+                    <input
+                        type="text"
+                        id="token"
+                        name="token"
+                        value="<?= esc((string) $token, 'attr') ?>"
+                        autocomplete="off"
+                        required
+                    >
+                </div>
+
+                <div class="admin-form-field">
+                    <label for="password"><?= esc('New password') ?></label>
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        autocomplete="new-password"
+                        required
+                        value=""
+                    >
+                </div>
+
+                <div class="admin-auth-form__actions">
+                    <button type="submit" class="admin-btn admin-btn--primary admin-btn--block">
+                        <?= esc('Update password') ?>
+                    </button>
+                </div>
+            </form>
+
+<?= view('admin/auth/_partials/document_end') ?>

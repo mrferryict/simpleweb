@@ -1,27 +1,54 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title><?= esc('Password reset') ?></title>
-</head>
-<body>
-<main>
-    <h1><?= esc('Password reset') ?></h1>
-    <?php if (! empty($error)): ?>
-        <p role="alert"><?= esc((string) $error) ?></p>
-    <?php endif; ?>
-    <?php if (! empty($message)): ?>
-        <p><?= esc((string) $message) ?></p>
-    <?php endif; ?>
-    <form method="post" action="<?= site_url('cp/password-reset') ?>">
-        <?= csrf_field() ?>
-        <div>
-            <label for="email"><?= esc('Email') ?></label>
-            <input type="email" id="email" name="email" autocomplete="email" required>
-        </div>
-        <button type="submit"><?= esc('Request reset') ?></button>
-    </form>
-</main>
-</body>
-</html>
+<?php
+
+declare(strict_types=1);
+
+/**
+ * Password reset request — presentation only.
+ *
+ * @var string|null $message Opaque success-style message.
+ * @var string|null $error   Throttle or error message.
+ */
+$pageTitle = 'Password reset';
+$skipLabel = 'Skip to password reset';
+echo view('admin/auth/_partials/document_start', compact('pageTitle', 'skipLabel'));
+echo view('admin/auth/_partials/card_header', [
+    'cardTitle' => 'Password reset',
+    'cardLead'  => 'Enter your account email to request a password reset.',
+]);
+?>
+
+            <?php if (! empty($error)) : ?>
+                <div class="admin-alert admin-alert--error" role="alert">
+                    <?= esc((string) $error) ?>
+                </div>
+            <?php endif; ?>
+
+            <?php if (! empty($message)) : ?>
+                <div class="admin-alert admin-alert--info" role="status">
+                    <?= esc((string) $message) ?>
+                </div>
+            <?php endif; ?>
+
+            <form class="admin-auth-form" method="post" action="<?= site_url('cp/password-reset') ?>">
+                <?= csrf_field() ?>
+
+                <div class="admin-form-field">
+                    <label for="email"><?= esc('Email') ?></label>
+                    <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        autocomplete="email"
+                        required
+                        value=""
+                    >
+                </div>
+
+                <div class="admin-auth-form__actions">
+                    <button type="submit" class="admin-btn admin-btn--primary admin-btn--block">
+                        <?= esc('Request reset') ?>
+                    </button>
+                </div>
+            </form>
+
+<?= view('admin/auth/_partials/document_end') ?>
