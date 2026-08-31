@@ -28,6 +28,15 @@ The example file is organized into seven sections: Environment, Application, Dat
 
 Site-level timezone and locale are also configurable in the Control Panel after install (`Config\Site` bootstrap defaults are persisted by `cms:install`). See [ADMIN-CONTROL-PANEL.md](ADMIN-CONTROL-PANEL.md) for `/cp` vs `/admin` and the main administration areas.
 
+### Locale defaults after fresh install
+
+| Setting | Default after `cms:install` |
+|---|---|
+| Primary locale | **`id`** |
+| Secondary locale | **`en`** (may be cleared in Settings) |
+
+Content authors should select the correct **locale** when creating Pages and Posts. Public URLs resolve against the site's configured primary locale. Optional demo content from `php spark cms:demo` uses locale **`id`**. See [FIRST-RUN.md](FIRST-RUN.md#primary-locale).
+
 ### Session and cache
 
 - Sessions use the **file** handler (`CodeIgniter\Session\Handlers\FileHandler`); default save path is `WRITEPATH/session`.

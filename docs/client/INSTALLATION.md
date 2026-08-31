@@ -49,12 +49,14 @@ cd smite-cms
 
 ## 5. Check out the desired release
 
-Prefer a documented release tag over an arbitrary branch tip:
+Prefer the latest documented release tag over an arbitrary branch tip:
 
 ```bash
 git fetch --tags
-git checkout v1.1.2
+git checkout v1.1.4
 ```
+
+`v1.1.4` is the current repository distribution. Its application code is identical to **`v1.1.2`**. See [README.md](../README.md#release-history-v1) for the release history.
 
 ## 6. Install PHP dependencies (production)
 

@@ -40,6 +40,12 @@ Navigation is a single sidebar (desktop) or menu (mobile) with permission-gated 
 - **Configuration** — Settings and Themes control site-wide behavior and appearance.
 - **Compliance** — Audit records operational events; it is not a dashboard and does not expose secrets or raw metadata.
 
+### Posts — Author field
+
+When creating or editing a **Post**, the form includes a required **Author (public)** field. Enter the name displayed to visitors on the published article (for example, a staff member or department name).
+
+This value is stored as the Post's public author label. It is **not** automatically taken from the logged-in Admin account — you enter it manually for each Post according to your editorial policy.
+
 ## Shared UI (TH-006–TH-010)
 
 All Control Panel screens share:
@@ -94,7 +100,7 @@ Verified by automated tests and view inspection (TH-011). Browser visual QA was 
 | CSRF preservation | PASS |
 | Responsive CSS (code review) | PASS |
 | Accessibility basics (semantic HTML, labels, focus) | PASS |
-| Full PHPUnit suite | PASS (681 tests / 3045 assertions) |
+| Full PHPUnit suite | PASS (697 tests / 3118 assertions) |
 | Public Theme 2026 separation | PASS |
 | Routes / Services / schema unchanged by TH-006–TH-010 | PASS |
 

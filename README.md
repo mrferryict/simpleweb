@@ -3,7 +3,22 @@
 SMITE CMS is a single-organization, single-website public Content Management System
 built on CodeIgniter 4. It is not a website builder.
 
-Official release: **v1.1.2**
+Official application release: **v1.1.2**
+
+Latest repository distribution: **v1.1.4** (documentation-only; application code identical to v1.1.2)
+
+## Release history (V1)
+
+| Tag | Summary |
+|---|---|
+| `v1.0.0` | Original V1 baseline |
+| `v1.1.0` | Theme 2026 + starter content + Admin Control Panel |
+| `v1.1.1` | First-login password reset enforcement |
+| `v1.1.2` | Backup path correction + application baseline |
+| `v1.1.3` | Documentation alignment (client docs with v1.1.2) |
+| `v1.1.4` | Final V1 documentation release |
+
+**Which tag should I clone?** Use **`v1.1.4`** — it is the latest distribution and includes the most current client documentation. Its application behavior is the same as **`v1.1.2`**. Do not expect new application features in `v1.1.4`.
 
 ## Requirements
 
@@ -21,7 +36,7 @@ Official release: **v1.1.2**
 
 ## New installation
 
-1. Clone this repository (prefer the `v1.1.2` tag or a later documented release tag).
+1. Clone this repository (use the **`v1.1.4`** tag — see [Release history](#release-history-v1) above).
 2. Copy `.env.example` to `.env` and fill in required values (database, security keys, Admin credentials, **auth throttle**).
 3. Follow **[Client Installation](docs/client/INSTALLATION.md)** end-to-end.
 
@@ -50,6 +65,13 @@ Do **not** run `composer update` in production. Use `composer install --no-dev` 
 | [Client Update](docs/client/UPDATE.md) | Safe production updates |
 | [Client Backup & Restore](docs/client/BACKUP-RESTORE.md) | Database + uploads pairing |
 | [Production Checklist](docs/client/PRODUCTION-CHECKLIST.md) | Go-live checklist |
+
+**Maintainer / developer documentation:**
+
+| Document | Purpose |
+|---|---|
+| [Developer Client Deployment](docs/DEVELOPER-CLIENT-DEPLOYMENT.md) | SOP for onboarding a new client |
+| [Theme Development Guide](docs/05-Theme-Development-Guide.md) | Quick-start for creating a new Theme from Theme 2026 |
 
 Internal architecture / product docs remain under [`docs/`](docs/) and [`adr/`](adr/).
 
