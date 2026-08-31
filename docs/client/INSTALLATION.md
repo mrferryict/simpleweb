@@ -53,7 +53,7 @@ Prefer a documented release tag over an arbitrary branch tip:
 
 ```bash
 git fetch --tags
-git checkout v1.1.1
+git checkout v1.1.2
 ```
 
 ## 6. Install PHP dependencies (production)
